@@ -1,71 +1,59 @@
-#ifndef __WINDOW_WIDGET_HPP__
-#define __WINDOW_WIDGET_HPP__
+#ifndef __WINDOW_HPP__
+#define __WINDOW_HPP__
 
-#include <gtk-4.0/gtk/gtk.h>
-#include <string>
-
-#include <memory>
+#include <gtkmm-4.0/gtkmm.h>
+#include <bitset>
 
 #include <Widgets/Widget.hpp>
 
-enum WindowAnchors {
-    ANCHOR_NONE   = 0b0000,
-    ANCHOR_TOP    = 0b0001,
-    ANCHOR_BOTTOM = 0b0010,
-    ANCHOR_LEFT   = 0b0100,
-    ANCHOR_RIGHT  = 0b1000
-};
-
-enum WindowExclusivity {
-    EXCLUSIVE_DISABLED,
-    EXCLUSIVE_AUTO,
-    EXCLUSIVE_SPECIFIED
+enum AnchorEdge {
+    NONE   = 0b0000,
+    LEFT   = 0b0001,
+    RIGHT  = 0b0010,
+    TOP    = 0b0100,
+    BOTTOM = 0b1000
 };
 
 struct WindowProps {
-    std::string name;
-    GdkMonitor* monitor = nullptr;
+    WidgetProps widget;
+    
+    Glib::RefPtr<Gtk::Widget> child;
+    std::bitset<4> anchor{ NONE };
 
-    bool visible = false;
-
-    struct {
-        WindowExclusivity type = EXCLUSIVE_DISABLED;
-        uint64_t value = false;
-    } exclusivity;
-
-    // WindowAnchors enum flag
-    uint64_t anchor = 0;
+    // -1 is auto, anything below -1 will make it none and above 0 will set a specific exclusive zone, 0 does none
+    int64_t exclusive;
 };
 
-class Application;
 namespace Widgets {
 
-class Window : public Widget {
-private:
+class Window : public Gtk::Window, public Widgets::Widget {
+protected:
     WindowProps _props;
-    Widget* _child;
 
-    void reloadAnchor();
-    void reloadExclusivity();
+    virtual WidgetProps& getWidgetProps();
+    virtual WindowProps& getWindowProps();
 
-    void reloadWindowOptions();
+    virtual void applyChild();
+    virtual void applyAnchor();
+    virtual void applyExclusive();
+
+    virtual void applyProps();
+
+    Window();
+    Window(WindowProps props);
 
 public:
-    Window(WindowProps props, Widget* child);
-    ~Window();
+    static Glib::RefPtr<Widgets::Window> create(WindowProps props = {});
 
-    void show();
-    void setChild(Widget* widget);
+    // dont call manually
+    void __init();
+    virtual ~Window();
 
-    std::string getName() const;
-    GdkMonitor* getMonitor() const;
-    uint64_t getAnchor() const;
+    virtual std::bitset<4> getAnchor();
+    virtual int64_t getExclusive();
 
-    void setExclusive(uint64_t space);
-    void setExclusiveAuto(bool enabled);
-    void setAnchor(uint64_t anchor);
-
-    void setApplication(GtkApplication* application);
+    virtual void setAnchor(std::bitset<4> anchor);
+    virtual void setExclusive(int64_t exclusive);
 };
 
 };

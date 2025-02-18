@@ -6,8 +6,6 @@
 #include <fmt/format.h>
 #include <Utils/ProcessUtil.hpp>
 
-#include <Application.hpp>
-
 using namespace Util::CSS;
 
 std::optional<std::string> Util::CSS::SCSStoCSS(std::string scss, std::string includePath) {

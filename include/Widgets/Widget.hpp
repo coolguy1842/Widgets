@@ -1,26 +1,63 @@
 #ifndef __WIDGET_HPP__
 #define __WIDGET_HPP__
 
-#include <gtk-4.0/gtk/gtk.h>
-#include <glib-2.0/glib.h>
+#include <gtkmm-4.0/gtkmm.h>
 
-#include <string>
+struct WidgetProps {
+    bool hExpand = true;
+    bool vExpand = true;
+
+    int widthRequest = -1;
+    int heightRequest = -1;
+
+    bool visible = true;
+
+    // css can be scss
+    std::string css;
+};
+
+namespace Widgets {
 
 class Widget {
 protected:
-    GtkWidget* _widget;
+    Glib::RefPtr<Gtk::Widget> _widget;
+    WidgetProps _props;
 
-    virtual void registerEvents();
+    Glib::RefPtr<Gtk::CssProvider> _cssProvider;
+
+    virtual void applySizeRequests();
+    virtual void applyVisible();
+    virtual void applyCSS();
+    
+    // must call previous if override, must call in child class
+    virtual void applyProps();
+    // must call previous if override, must call in child class
+    virtual void initSignals();
+
+    // to get around diamond inheritance 
+    virtual WidgetProps& getWidgetProps();
+
+    Widget(Glib::RefPtr<Gtk::Widget> widget);
+    Widget(Glib::RefPtr<Gtk::Widget> widget, WidgetProps props);
 
 public:
-    Widget(GtkWidget* widget);
+    // please call in parent static create function, dont use from constructor to avoid inheritance issues
+    // PS: dont call manually outside of the create function
+    virtual void __init();
     virtual ~Widget();
+    
+    // can be a scss string
+    std::string getCSS();
 
-    virtual void show();
-    virtual void hide();
 
-    GtkWidget* getGTKWidget();
-    void registerCallback(std::string signal, GCallback callback, void* extraData = NULL);
+    void setWidthRequest(int widthRequest);
+    void setHeightRequest(int heightRequest);
+
+    // can be scss
+    void setCSS(std::string css);
 };
+
+};
+
 
 #endif

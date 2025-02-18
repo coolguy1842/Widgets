@@ -1,42 +1,44 @@
 #ifndef __APPLICATION_HPP__
 #define __APPLICATION_HPP__
 
-#include <Widgets/Window.hpp>
+#include <gtkmm-4.0/gtkmm.h>
+#include <Windows/Bar.hpp>
 
-#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 #include <string>
 #include <vector>
 
-class Application {
-private:
-    GtkApplication* _application;
-    GdkDisplay* _display;
+#include <Utils/CSSUtil.hpp>
 
-    std::unordered_map<std::string, Widgets::Window*> _windows;
-    std::vector<GtkCssProvider*> _cssProviders;
+class Application : public Gtk::Application {
+private:
+    std::vector<Glib::RefPtr<Gtk::Window>> _windows;
 
 public:
-    Application(GtkApplication* app);
-    ~Application();
+    Application() : Gtk::Application("com.coolguy1842.widgets", Gtk::Application::Flags::DEFAULT_FLAGS) {}
+    ~Application() {}
 
-    void addWindow(Widgets::Window* window);
-    void removeWindow(std::string window);
+    void on_startup() {
+        Gtk::Application::on_startup();
+        printf("startup\n");
 
-    bool hasWindow(std::string name) const;
-    Widgets::Window* getWindow(std::string name);
-    
-    GtkApplication* getGTKApplication();
+        _windows.push_back(Bar::create());
+        for(Glib::RefPtr<Gtk::Window>& window : _windows) {
+            this->add_window(*window);
+        }
+    }
 
+    void on_shutdown() {
+        Gtk::Application::on_shutdown();
+        
+        for(Glib::RefPtr<Gtk::Window>& window : _windows) {
+            this->remove_window(*window);
+            window.reset();
+        }
 
-    void resetCSS();
-    void loadCSS(std::string css);
-
-    void loadCSSFromFile(std::string path, std::string includePath = "./");
-
-    static void error(std::string message) {
-        throw std::runtime_error(message);
+        _windows.clear();
+        printf("shutdown\n");
     }
 };
 

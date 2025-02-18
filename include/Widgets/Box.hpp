@@ -1,30 +1,40 @@
-#ifndef __BOX_WIDGET_HPP__
-#define __BOX_WIDGET_HPP__
+#ifndef __BOX_HPP__
+#define __BOX_HPP__
 
-#include <Widgets/Widget.hpp>
+#include <gtkmm-4.0/gtkmm.h>
 #include <vector>
 
-#include <memory>
+#include <Widgets/Widget.hpp>
 
 struct BoxProps {
-    GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
-    int spacing = 1;
-
-    std::vector<Widget*> children = {};
+    WidgetProps widget;
+    
+    std::vector<Glib::RefPtr<Gtk::Widget>> children;
 };
 
 namespace Widgets {
 
-class Box : public Widget {
-private:
+class Box : public Gtk::Box, public Widgets::Widget {
+protected:
     BoxProps _props;
 
-public:
-    Box(BoxProps props);
-    ~Box();
+    virtual WidgetProps& getWidgetProps();
+    virtual BoxProps& getBoxProps();
 
-    std::vector<Widget*> getChildren() const;
-    void setChildren(std::vector<Widget*> children);
+    virtual void applyChildren();
+    virtual void applyProps();
+
+    virtual void initSignals();
+
+    Box();
+    Box(BoxProps props);
+
+public:
+    static Glib::RefPtr<Widgets::Box> create(BoxProps props = {});
+
+    // dont call manually
+    void __init();
+    virtual ~Box();
 };
 
 };
