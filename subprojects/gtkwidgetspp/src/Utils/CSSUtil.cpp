@@ -1,10 +1,9 @@
-#include <Utils/CSSUtil.hpp>
+#include <fmt/format.h>
 
+#include <Utils/CSSUtil.hpp>
+#include <Utils/ProcessUtil.hpp>
 #include <fstream>
 #include <sstream>
-
-#include <fmt/format.h>
-#include <Utils/ProcessUtil.hpp>
 
 using namespace Util::CSS;
 
@@ -22,7 +21,7 @@ std::optional<std::string> Util::CSS::loadCSSFromFile(std::string path, std::str
     stream << file.rdbuf();
 
     if(path.substr(std::max(0L, ((int64_t)path.size()) - 5)) == ".scss") {
-        return SCSStoCSS(stream.str(), includePath);
+        return Util::Process::runCommand(fmt::format("sass {}", path));
     }
 
     return stream.str();

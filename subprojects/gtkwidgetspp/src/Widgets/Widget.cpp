@@ -36,12 +36,19 @@ void Widgets::Widget::applyCSS() {
     this->_widget->get_style_context()->add_provider(_cssProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 }
 
+void Widgets::Widget::applyClassNames() {
+    for(const std::string& className : getWidgetProps().classNames) {
+        _widget->add_css_class(className);
+    }
+}
+
 void Widgets::Widget::applyProps() {
     applyName();
     applyExpands();
     applySizeRequests();
     applyVisible();
     applyCSS();
+    applyClassNames();
 };
 
 void Widgets::Widget::initSignals() {

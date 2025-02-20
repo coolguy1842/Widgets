@@ -1,5 +1,4 @@
 project('widgets', 'cpp', default_options : ['cpp_std=c++23'])
-fs = import('fs')
 
 libgtkwidgetspp_proj = subproject('gtkwidgetspp')
 libgtkwidgetspp_dep = libgtkwidgetspp_proj.get_variable('libgtkwidgetspp_dep')

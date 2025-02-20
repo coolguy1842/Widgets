@@ -44,7 +44,12 @@ protected:
     Window(WindowProps props);
 
 public:
-    static Widgets::Window* create(WindowProps props = {});
+    static Widgets::Window* create(WindowProps props = {}) {
+        Widgets::Window* window = new Widgets::Window(props);
+        window->__init();
+
+        return window;
+    }
 
     // dont call manually
     void __init();

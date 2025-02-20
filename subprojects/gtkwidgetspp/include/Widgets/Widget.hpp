@@ -6,8 +6,8 @@
 struct WidgetProps {
     std::string name = "";
 
-    bool hExpand = true;
-    bool vExpand = true;
+    bool hExpand = false;
+    bool vExpand = false;
 
     int widthRequest  = -1;
     int heightRequest = -1;
@@ -15,7 +15,8 @@ struct WidgetProps {
     bool visible = true;
 
     // css can be scss
-    std::string css;
+    std::string css                     = "";
+    std::vector<std::string> classNames = {};
 };
 
 namespace Widgets {
@@ -32,6 +33,7 @@ protected:
     virtual void applySizeRequests();
     virtual void applyVisible();
     virtual void applyCSS();
+    virtual void applyClassNames();
 
     // must call previous if override, must call in child class
     virtual void applyProps();

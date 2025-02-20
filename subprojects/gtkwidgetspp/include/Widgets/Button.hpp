@@ -38,7 +38,12 @@ protected:
     Button(ButtonProps props);
 
 public:
-    static Widgets::Button* create(ButtonProps props = {});
+    static Widgets::Button* create(ButtonProps props = {}) {
+        Widgets::Button* button = new Widgets::Button(props);
+        button->__init();
+
+        return button;
+    }
 
     // dont call manually
     void __init();

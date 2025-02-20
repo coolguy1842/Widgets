@@ -43,13 +43,6 @@ Widgets::Window::Window(WindowProps props) : Widgets::Widget(this), _props(props
 
 Widgets::Window::~Window() {}
 
-Widgets::Window* Widgets::Window::create(WindowProps props) {
-    Widgets::Window* window = new Widgets::Window(props);
-    window->__init();
-
-    return window;
-}
-
 std::bitset<4> Widgets::Window::getAnchor() {
     for(uint i = 0; i < 4; i++) {
         getWindowProps().anchor.set(i, gtk_layer_get_anchor(this->gobj(), (GtkLayerShellEdge)i));

@@ -26,8 +26,19 @@ protected:
     Label(LabelProps props);
 
 public:
-    static Widgets::Label* create(LabelProps props = {});
-    static Widgets::Label* create(std::string text);
+    static Widgets::Label* create(LabelProps props = {}) {
+        Widgets::Label* label = new Widgets::Label(props);
+        label->__init();
+
+        return label;
+    }
+
+    static Widgets::Label* create(std::string text) {
+        Widgets::Label* label = new Widgets::Label({ .text = text });
+        label->__init();
+
+        return label;
+    }
 
     // dont call manually
     void __init();

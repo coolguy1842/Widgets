@@ -28,7 +28,12 @@ protected:
     Box(BoxProps props);
 
 public:
-    static Widgets::Box* create(BoxProps props = {});
+    static Widgets::Box* create(BoxProps props = {}) {
+        Widgets::Box* box = new Widgets::Box(props);
+        box->__init();
+
+        return box;
+    }
 
     // dont call manually
     void __init();

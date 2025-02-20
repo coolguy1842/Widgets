@@ -13,30 +13,12 @@
 #include <cstring>
 #include <format>
 
+#include "Widgets/ClonerButton.hpp"
+
 class Bar : public Widgets::Window {
 private:
     time_t prevTime = 0;
     Glib::RefPtr<Widgets::Label> clock;
-
-    static bool on_button_click(Widgets::Button* button) {
-        Widgets::Box* box = (Widgets::Box*)button->get_parent();
-
-        int num;
-        sscanf(button->get_label().c_str(), "button%d", &num);
-        std::string nextName = std::format("button{}", num + 1);
-
-        // clang-format off
-        Widgets::Button::create({
-            .widget = {
-                .hExpand = true
-            },
-            .text = nextName,
-            .on_click = on_button_click
-        })->insert_after(*box, *button);
-        // clang-format on
-
-        return true;
-    }
 
     // clang-format off
     Bar() :
@@ -45,13 +27,7 @@ private:
             .child = Widgets::Box::create({
                 .children = {
                     Widgets::Label::create({ .widget = { .hExpand = true } }),
-                    Widgets::Button::create({
-                        .widget = {
-                            .hExpand = true
-                        },
-                        .text = "button1",
-                        .on_click = on_button_click
-                    })
+                    ClonerButton::create({ .widget = { .hExpand = true, .classNames = { "test-button" } } })
                 }
             }),
             .anchor    = { 0b1011 },

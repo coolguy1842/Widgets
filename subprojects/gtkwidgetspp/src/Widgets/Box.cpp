@@ -5,7 +5,7 @@ void Widgets::Box::applyChildren() {
         this->remove(*widget);
     }
 
-    for(Gtk::Widget* widget : _props.children) {
+    for(Gtk::Widget* widget : getBoxProps().children) {
         this->append(*widget);
     }
 }
@@ -25,14 +25,7 @@ Widgets::Box::Box(BoxProps props) : Widgets::Widget(this), _props(props) {}
 
 Widgets::Box::~Box() {}
 
-Widgets::Box* Widgets::Box::create(BoxProps props) {
-    Widgets::Box* box = new Widgets::Box(props);
-    box->__init();
-
-    return box;
-}
-
 void Widgets::Box::setChildren(std::vector<Gtk::Widget*> children) {
-    _props.children = children;
+    getBoxProps().children = children;
     applyChildren();
 }
