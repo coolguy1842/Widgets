@@ -4,8 +4,6 @@
 
 #include <Widgets/Button.hpp>
 
-#include "Widgets/Widget.hpp"
-
 struct ClonerButtonProps {
     WidgetProps widget = {};
     ButtonProps button = {};
