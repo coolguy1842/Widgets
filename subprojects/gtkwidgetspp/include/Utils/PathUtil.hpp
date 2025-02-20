@@ -4,16 +4,16 @@
 #include <gio/gio.h>
 
 #include <cstdint>
-#include <string>
 #include <functional>
+#include <string>
 #include <unordered_map>
 
 namespace Util::Path {
 
 enum PathWatcherOptions {
-    WATCH_NONE   = 0b00, // only watch the base path
-    WATCH_FILE   = 0b01, // watch for file changes in the path
-    WATCH_FOLDER = 0b10  // watch for folder changes in the path
+    WATCH_NONE   = 0b00,  // only watch the base path
+    WATCH_FILE   = 0b01,  // watch for file changes in the path
+    WATCH_FOLDER = 0b10   // watch for folder changes in the path
 };
 
 enum PathEvents {
@@ -23,7 +23,8 @@ enum PathEvents {
     PATH_CREATED = 0b1000
 };
 
-typedef std::function<void(std::string path, PathEvents event)> WatcherCallbackFunction;
+typedef std::function<void(std::string path, PathEvents event)>
+    WatcherCallbackFunction;
 
 struct PathWatcherCallback {
     uint64_t watchEvents;
@@ -45,11 +46,10 @@ private:
     void startMonitor(std::string path);
     void stopMonitor();
 
-
 public:
-    PathWatcher(std::string basePath, uint64_t options = WATCH_NONE, bool recursive = false);
+    PathWatcher(std::string basePath, uint64_t options = WATCH_NONE,
+                bool recursive = false);
     ~PathWatcher();
-
 
     uint64_t startWatching(uint64_t events, WatcherCallbackFunction func);
 
@@ -61,6 +61,6 @@ public:
     std::unordered_map<uint64_t, PathWatcherCallback> getCallbacks() const;
 };
 
-};
+};  // namespace Util::Path
 
 #endif

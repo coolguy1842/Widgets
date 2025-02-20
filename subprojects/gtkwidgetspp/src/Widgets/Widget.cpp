@@ -1,6 +1,14 @@
+#include <Utils/CSSUtil.hpp>
 #include <Widgets/Widget.hpp>
 
-#include <Utils/CSSUtil.hpp>
+void Widgets::Widget::applyName() {
+    _widget->set_name(getWidgetProps().name);
+}
+
+void Widgets::Widget::applyExpands() {
+    _widget->set_hexpand(getWidgetProps().hExpand);
+    _widget->set_vexpand(getWidgetProps().vExpand);
+}
 
 void Widgets::Widget::applySizeRequests() {
     _widget->property_width_request().set_value(getWidgetProps().widthRequest);
@@ -29,6 +37,8 @@ void Widgets::Widget::applyCSS() {
 }
 
 void Widgets::Widget::applyProps() {
+    applyName();
+    applyExpands();
     applySizeRequests();
     applyVisible();
     applyCSS();
@@ -44,25 +54,30 @@ void Widgets::Widget::initSignals() {
     _widget->property_visible().signal_changed().connect([&]() { getWidgetProps().visible = _widget->is_visible(); });
 }
 
-
-
 void Widgets::Widget::__init() {
     initSignals();
     applyProps();
 }
 
-Widgets::Widget::Widget(Glib::RefPtr<Gtk::Widget> widget) : _widget(widget) {}\
-Widgets::Widget::Widget(Glib::RefPtr<Gtk::Widget> widget, WidgetProps props) : _widget(widget), _props(props) {}
+Widgets::Widget::Widget(Gtk::Widget* widget) : _widget(widget) {}
+Widgets::Widget::Widget(Gtk::Widget* widget, WidgetProps props) : _widget(widget), _props(props) {}
 
-Widgets::Widget::~Widget() { }
+Widgets::Widget::~Widget() {}
 
 WidgetProps& Widgets::Widget::getWidgetProps() { return _props; }
 
-
 std::string Widgets::Widget::getCSS() { return getWidgetProps().css; };
 
+void Widgets::Widget::setWidthRequest(int widthRequest) {
+    getWidgetProps().widthRequest = widthRequest;
+    applySizeRequests();
+}
+void Widgets::Widget::setHeightRequest(int heightRequest) {
+    getWidgetProps().heightRequest = heightRequest;
+    applySizeRequests();
+}
 
-void Widgets::Widget::setWidthRequest(int widthRequest) { getWidgetProps().widthRequest = widthRequest; applySizeRequests(); }
-void Widgets::Widget::setHeightRequest(int heightRequest) { getWidgetProps().heightRequest = heightRequest; applySizeRequests(); }
-
-void Widgets::Widget::setCSS(std::string css) { getWidgetProps().css = css; applyCSS(); };
+void Widgets::Widget::setCSS(std::string css) {
+    getWidgetProps().css = css;
+    applyCSS();
+};

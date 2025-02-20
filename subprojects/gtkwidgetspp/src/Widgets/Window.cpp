@@ -1,13 +1,8 @@
-#include <Widgets/Window.hpp>
-
-#include <gtkmm-4.0/gtkmm.h>
 #include <gtk4-layer-shell/gtk4-layer-shell.h>
+#include <gtkmm-4.0/gtkmm.h>
+
+#include <Widgets/Window.hpp>
 #include <bitset>
-
-
-WidgetProps& Widgets::Window::getWidgetProps() { return _props.widget; }
-WindowProps& Widgets::Window::getWindowProps() { return _props; }
-
 
 void Widgets::Window::applyChild() {
     this->set_child(*getWindowProps().child);
@@ -37,27 +32,23 @@ void Widgets::Window::applyProps() {
     applyExclusive();
 }
 
-
 void Widgets::Window::__init() {
     gtk_layer_init_for_window(this->gobj());
 
     Widgets::Widget::__init();
 }
 
-
-Widgets::Window::Window() : Widgets::Widget(Glib::make_refptr_for_instance(this)), _props({}) {}
-Widgets::Window::Window(WindowProps props) : Widgets::Widget(Glib::make_refptr_for_instance(this)), _props(props) {}
+Widgets::Window::Window() : Widgets::Widget(this), _props({}) {}
+Widgets::Window::Window(WindowProps props) : Widgets::Widget(this), _props(props) {}
 
 Widgets::Window::~Window() {}
 
-
-Glib::RefPtr<Widgets::Window> Widgets::Window::create(WindowProps props) {
+Widgets::Window* Widgets::Window::create(WindowProps props) {
     Widgets::Window* window = new Widgets::Window(props);
     window->__init();
 
-    return Glib::make_refptr_for_instance(window);
+    return window;
 }
-
 
 std::bitset<4> Widgets::Window::getAnchor() {
     for(uint i = 0; i < 4; i++) {
@@ -75,6 +66,11 @@ int64_t Widgets::Window::getExclusive() {
     return (getWindowProps().exclusive = gtk_layer_get_exclusive_zone(this->gobj()));
 }
 
-
-void Widgets::Window::setAnchor(std::bitset<4> anchor) { getWindowProps().anchor = anchor; applyAnchor(); }
-void Widgets::Window::setExclusive(int64_t exclusive) { getWindowProps().exclusive = exclusive; applyExclusive(); }
+void Widgets::Window::setAnchor(std::bitset<4> anchor) {
+    getWindowProps().anchor = anchor;
+    applyAnchor();
+}
+void Widgets::Window::setExclusive(int64_t exclusive) {
+    getWindowProps().exclusive = exclusive;
+    applyExclusive();
+}

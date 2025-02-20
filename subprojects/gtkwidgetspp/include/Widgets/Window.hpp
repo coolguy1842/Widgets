@@ -2,9 +2,9 @@
 #define __WINDOW_HPP__
 
 #include <gtkmm-4.0/gtkmm.h>
-#include <bitset>
 
 #include <Widgets/Widget.hpp>
+#include <bitset>
 
 enum AnchorEdge {
     NONE   = 0b0000,
@@ -16,11 +16,12 @@ enum AnchorEdge {
 
 struct WindowProps {
     WidgetProps widget;
-    
-    Glib::RefPtr<Gtk::Widget> child;
+
+    Gtk::Widget* child;
     std::bitset<4> anchor{ NONE };
 
-    // -1 is auto, anything below -1 will make it none and above 0 will set a specific exclusive zone, 0 does none
+    // -1 is auto, anything below -1 will make it none and above 0 will set a
+    // specific exclusive zone, 0 does none
     int64_t exclusive;
 };
 
@@ -30,8 +31,8 @@ class Window : public Gtk::Window, public Widgets::Widget {
 protected:
     WindowProps _props;
 
-    virtual WidgetProps& getWidgetProps();
-    virtual WindowProps& getWindowProps();
+    virtual WidgetProps& getWidgetProps() { return _props.widget; }
+    virtual WindowProps& getWindowProps() { return _props; }
 
     virtual void applyChild();
     virtual void applyAnchor();
@@ -43,7 +44,7 @@ protected:
     Window(WindowProps props);
 
 public:
-    static Glib::RefPtr<Widgets::Window> create(WindowProps props = {});
+    static Widgets::Window* create(WindowProps props = {});
 
     // dont call manually
     void __init();
@@ -56,6 +57,6 @@ public:
     virtual void setExclusive(int64_t exclusive);
 };
 
-};
+};  // namespace Widgets
 
 #endif

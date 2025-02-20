@@ -1,66 +1,89 @@
 #ifndef __BAR_HPP__
 #define __BAR_HPP__
 
-#include <gtkmm-4.0/gtkmm.h>
+#include <fmt/format.h>
 #include <gtk4-layer-shell/gtk4-layer-shell.h>
+#include <gtkmm-4.0/gtkmm.h>
 
-#include <Widgets/Window.hpp>
 #include <Widgets/Box.hpp>
+#include <Widgets/Button.hpp>
+#include <Widgets/Label.hpp>
+#include <Widgets/Window.hpp>
+#include <cstdio>
+#include <cstring>
+#include <format>
 
 class Bar : public Widgets::Window {
 private:
     time_t prevTime = 0;
+    Glib::RefPtr<Widgets::Label> clock;
 
-    Gtk::Label clock = Gtk::Label("testing2");
+    static bool on_button_click(Widgets::Button* button) {
+        Widgets::Box* box = (Widgets::Box*)button->get_parent();
 
-    Bar() : Widgets::Window::Window({
-        .widget = {
-            .css = "* { color: red; }"
-        },
-        .child = Widgets::Box::create({
-            .children = {
-                Glib::make_refptr_for_instance(new Gtk::Label("test"))
-            }
-        }),
-        .anchor = { 0b1011 },
-        .exclusive = -1
-    }) {}
+        int num;
+        sscanf(button->get_label().c_str(), "button%d", &num);
+        std::string nextName = std::format("button{}", num + 1);
+
+        // clang-format off
+        Widgets::Button::create({
+            .widget = {
+                .hExpand = true
+            },
+            .text = nextName,
+            .on_click = on_button_click
+        })->insert_after(*box, *button);
+        // clang-format on
+
+        return true;
+    }
+
+    // clang-format off
+    Bar() :
+        Widgets::Window::Window({
+            .widget = { .css =  "* { color: white; }" },
+            .child = Widgets::Box::create({
+                .children = {
+                    Widgets::Label::create({ .widget = { .hExpand = true } }),
+                    Widgets::Button::create({
+                        .widget = {
+                            .hExpand = true
+                        },
+                        .text = "button1",
+                        .on_click = on_button_click
+                    })
+                }
+            }),
+            .anchor    = { 0b1011 },
+            .exclusive = -1
+        }) {}
+    // clang-format on
 
     ~Bar() {}
 
+    bool tickUpdateClock(const std::shared_ptr<Gdk::FrameClock>& frameClock) {
+        time_t curTime = time(NULL);
+        if(curTime != prevTime) {
+            clock->set_text(Glib::DateTime::create_now_local(curTime).format("%a %b %d, %H:%M:%S"));
+            prevTime = curTime;
+        }
+
+        return true;
+    }
+
 public:
     static Glib::RefPtr<Bar> create() {
-        Bar* bar = new Bar();
+        Glib::RefPtr<Bar> bar = Glib::make_refptr_for_instance(new Bar());
         bar->__init();
 
-        return Glib::make_refptr_for_instance(bar);
+        return bar;
     }
 
     void __init() {
         Widgets::Window::__init();
+        clock = Glib::make_refptr_for_instance((Widgets::Label*)(this->get_child()->get_children()[0]));
 
-        Widgets::Box* box = (Widgets::Box*)get_child();
-        box->append(clock);
-
-        // clock.set_hexpand(true);
-
-        // Gtk::Box* box = (Gtk::Box*)get_child();
-        // box->append(clock);
-
-        // add_tick_callback(sigc::mem_fun(*this, &Bar::update));
-    }
-
-
-    bool update(const std::shared_ptr<Gdk::FrameClock>& frameClock) {
-        // time_t curTime = time(NULL);
-        // if(curTime != prevTime) {
-        //     Glib::DateTime dateTime = Glib::DateTime::create_now_local(curTime);
-        //     clock.set_text(dateTime.format("%a %b %d, %H:%M:%S"));
-
-        //     prevTime = curTime;
-        // }
-
-        return true;
+        add_tick_callback(sigc::mem_fun(*this, &Bar::tickUpdateClock));
     }
 };
 

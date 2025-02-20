@@ -2,14 +2,14 @@
 #define __BOX_HPP__
 
 #include <gtkmm-4.0/gtkmm.h>
-#include <vector>
 
 #include <Widgets/Widget.hpp>
+#include <vector>
 
 struct BoxProps {
     WidgetProps widget;
-    
-    std::vector<Glib::RefPtr<Gtk::Widget>> children;
+
+    std::vector<Gtk::Widget*> children;
 };
 
 namespace Widgets {
@@ -18,25 +18,25 @@ class Box : public Gtk::Box, public Widgets::Widget {
 protected:
     BoxProps _props;
 
-    virtual WidgetProps& getWidgetProps();
-    virtual BoxProps& getBoxProps();
+    virtual WidgetProps& getWidgetProps() { return _props.widget; }
+    virtual BoxProps& getBoxProps() { return _props; }
 
     virtual void applyChildren();
     virtual void applyProps();
-
-    virtual void initSignals();
 
     Box();
     Box(BoxProps props);
 
 public:
-    static Glib::RefPtr<Widgets::Box> create(BoxProps props = {});
+    static Widgets::Box* create(BoxProps props = {});
 
     // dont call manually
     void __init();
     virtual ~Box();
+
+    void setChildren(std::vector<Gtk::Widget*>);
 };
 
-};
+};  // namespace Widgets
 
 #endif
