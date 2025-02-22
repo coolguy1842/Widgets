@@ -1,5 +1,4 @@
-#ifndef __PROCESS_UTIL_HPP__
-#define __PROCESS_UTIL_HPP__
+#pragma once
 
 #include <cstdint>
 #include <optional>
@@ -11,5 +10,3 @@ std::optional<std::string> runCommand(const std::string command,
                                       const uint64_t bufSize = 256);
 
 };
-
-#endif

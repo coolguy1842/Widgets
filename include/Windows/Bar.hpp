@@ -1,5 +1,4 @@
-#ifndef __BAR_HPP__
-#define __BAR_HPP__
+#pragma once
 
 #include <fmt/format.h>
 #include <gtk4-layer-shell/gtk4-layer-shell.h>
@@ -7,6 +6,7 @@
 
 #include <Widgets/Box.hpp>
 #include <Widgets/Button.hpp>
+#include <Widgets/CenterBox.hpp>
 #include <Widgets/Clock.hpp>
 #include <Widgets/ClonerButton.hpp>
 #include <Widgets/Label.hpp>
@@ -19,14 +19,23 @@ private:
     // clang-format off
     Bar() :
         Widgets::Window::Window({
-            .widget = { .css =  "* { color: white; }" },
-            .child = Widgets::Box::create({
-                .children = {
-                    Clock::create({ .widget = { .hExpand = true, .classNames = { "clock" } } }),
-                    ClonerButton::create({ .widget = { .hExpand = true, .classNames = { "test-button" } } })
-                }
+            .widget = { .classNames = { "bar" } },
+            .child = Widgets::CenterBox::create({
+                .left = Widgets::Box::create({
+                    .children = { ClonerButton::create({ .widget = { .classNames = { "test-button" } } }) }
+                }),
+                .center = Clock::create({ .widget = { .classNames = { "clock" } } }),
+                .right = Widgets::Button::create({
+                    .widget = { .classNames = { "close-button" }},
+                    .text = "close",
+                    .on_click = [&](Widgets::Button* button) {
+                        this->get_application()->quit();
+
+                        return true;
+                    }
+                })
             }),
-            .anchor    = { 0b1011 },
+            .anchor    = 0b1011,
             .exclusive = -1
         }) {}
     // clang-format on
@@ -45,5 +54,3 @@ public:
         Widgets::Window::__init();
     }
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __PATH_WATCHER_HPP__
-#define __PATH_WATCHER_HPP__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -62,5 +61,3 @@ public:
 };
 
 };  // namespace Util::Path
-
-#endif

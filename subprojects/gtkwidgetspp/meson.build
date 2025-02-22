@@ -13,7 +13,10 @@ libgtkwidgetspp = static_library(
             'src/Widgets/Label.cpp',
             'src/Widgets/Button.cpp',
             'src/Widgets/Box.cpp',
+            'src/Widgets/CenterBox.cpp',
             'src/Widgets/Window.cpp',
+
+            'src/Services/Hyprservice.cpp'
         )
     ],
     include_directories : inc,

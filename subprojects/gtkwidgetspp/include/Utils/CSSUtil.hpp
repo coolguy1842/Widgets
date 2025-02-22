@@ -1,5 +1,4 @@
-#ifndef __CSS_UTIL_HPP__
-#define __CSS_UTIL_HPP__
+#pragma once
 
 #include <optional>
 #include <string>
@@ -12,5 +11,3 @@ std::optional<std::string> loadCSSFromFile(std::string path,
                                            std::string includePath = "./");
 
 };  // namespace Util::CSS
-
-#endif

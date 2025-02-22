@@ -1,9 +1,9 @@
-#ifndef __APPLICATION_HPP__
-#define __APPLICATION_HPP__
+#pragma once
 
 #include <fmt/format.h>
 #include <gtkmm-4.0/gtkmm.h>
 
+#include <Services/Hyprservice.hpp>
 #include <Utils/CSSUtil.hpp>
 #include <Windows/Bar.hpp>
 #include <cstdio>
@@ -14,7 +14,7 @@
 class Application : public Gtk::Application {
 private:
     std::optional<std::string> _styleFilepath;
-    std::vector<Glib::RefPtr<Gtk::Window>> _windows;
+    std::vector<Gtk::Window*> _windows;
 
     std::vector<Glib::RefPtr<Gtk::CssProvider>> _cssProviders;
 
@@ -38,15 +38,13 @@ private:
     void on_window_added(Gtk::Window* window) override {
         Gtk::Application::on_window_added(window);
 
-        _windows.push_back(Glib::make_refptr_for_instance(window));
+        _windows.push_back(window);
     }
 
     void on_window_removed(Gtk::Window* window) override {
         Gtk::Application::on_window_removed(window);
 
-        Glib::RefPtr<Gtk::Window> windowRef = Glib::make_refptr_for_instance(window);
-
-        auto it = std::find(_windows.begin(), _windows.end(), windowRef);
+        auto it = std::find(_windows.begin(), _windows.end(), window);
         if(it != _windows.end()) {
             _windows.erase(it);
         }
@@ -55,6 +53,8 @@ private:
     void on_startup() override {
         Gtk::Application::on_startup();
         printf("startup\n");
+
+        Services::Hyprservice::getInstance();
 
         if(_styleFilepath.has_value()) {
             loadSCSS(_styleFilepath.value().c_str());
@@ -65,13 +65,14 @@ private:
 
     void on_shutdown() override {
         Gtk::Application::on_shutdown();
-        printf("shutdown\n");
 
-        for(Glib::RefPtr<Gtk::Window>& window : _windows) {
+        for(Gtk::Window* window : _windows) {
             this->remove_window(*window);
+            window->close();
         }
 
         _windows.clear();
+        printf("shutdown\n");
     }
 
 public:
@@ -112,5 +113,3 @@ public:
         applyCSS(css.value(), reset);
     }
 };
-
-#endif

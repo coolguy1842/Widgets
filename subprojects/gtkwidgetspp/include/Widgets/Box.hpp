@@ -1,5 +1,4 @@
-#ifndef __BOX_HPP__
-#define __BOX_HPP__
+#pragma once
 
 #include <gtkmm-4.0/gtkmm.h>
 
@@ -39,9 +38,7 @@ public:
     void __init();
     virtual ~Box();
 
-    void setChildren(std::vector<Gtk::Widget*>);
+    void setChildren(std::vector<Gtk::Widget*> children);
 };
 
 };  // namespace Widgets
-
-#endif

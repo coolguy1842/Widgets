@@ -1,11 +1,20 @@
+.bar {
+    background-color: #000000BF;
+    color: #5D93B0;
+}
+
 .test-button {
-    background-color: rgba(49, 49, 49, 0.171);
+    background-color: rgba(0, 0, 0, 0.171);
 
     &:hover {
-        background-color: rgba(0, 0, 0, 1);
+        background-color: #5D93B0;
     }
 }
 
-.clock {
-    color: blue;
+.close-button {
+    background-color: rgba(0, 0, 0, 0.171);
+    
+    &:hover {
+        background-color: #e45353;
+    }
 }

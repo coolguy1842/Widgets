@@ -9,6 +9,9 @@ Cpp11BracedListStyle: false
 AccessModifierOffset: -4
 AlignArrayOfStructures: Left
 
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+
 AlignConsecutiveBitFields:
   Enabled: true
 
@@ -26,3 +29,8 @@ BraceWrapping:
   BeforeElse: true
 
 BreakBeforeBraces: Custom
+
+IndentCaseLabels: false
+AllowShortCaseLabelsOnASingleLine: true
+
+AlignAfterOpenBracket: BlockIndent

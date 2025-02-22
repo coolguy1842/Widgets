@@ -1,5 +1,4 @@
-#ifndef __WIDGET_HPP__
-#define __WIDGET_HPP__
+#pragma once
 
 #include <gtkmm-4.0/gtkmm.h>
 
@@ -64,5 +63,3 @@ public:
 };
 
 };  // namespace Widgets
-
-#endif

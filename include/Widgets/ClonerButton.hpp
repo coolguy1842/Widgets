@@ -8,7 +8,7 @@ struct ClonerButtonProps {
     WidgetProps widget = {};
     ButtonProps button = {};
 
-    int64_t buttonNumber = 0;
+    int64_t buttonNumber = 1;
 };
 
 class ClonerButton : public Widgets::Button {
@@ -23,7 +23,7 @@ protected:
     ClonerButton(ClonerButtonProps props) : Widgets::Button(props.button), _props(props) {};
 
     void applyButtonNumber() {
-        set_label(fmt::format("button{}", getClonerButtonProps().buttonNumber));
+        set_label(std::to_string(getClonerButtonProps().buttonNumber));
     }
 
     void applyProps() {
