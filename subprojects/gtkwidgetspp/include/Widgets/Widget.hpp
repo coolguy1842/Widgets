@@ -60,6 +60,9 @@ public:
 
     // can be scss
     void setCSS(std::string css);
+
+    void toggleClassName(std::string className);
+    void toggleClassName(std::string className, bool active);
 };
 
 };  // namespace Widgets

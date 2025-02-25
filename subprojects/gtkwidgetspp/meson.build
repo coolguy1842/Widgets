@@ -25,6 +25,7 @@ libgtkwidgetspp = static_library(
         dependency('gtk4'),
         dependency('gtkmm-4.0'),
         dependency('gtk4-layer-shell-0'),
+        dependency('nlohmann_json'),
     ]
 )
 
@@ -35,5 +36,6 @@ libgtkwidgetspp_dep = declare_dependency(
         dependency('gtk4'),
         dependency('gtkmm-4.0'),
         dependency('gtk4-layer-shell-0'),
+        dependency('nlohmann_json'),
     ]
 )

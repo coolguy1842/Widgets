@@ -14,6 +14,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include "Widgets/WorkspaceSelector.hpp"
+
 class Bar : public Widgets::Window {
 private:
     // clang-format off
@@ -21,9 +23,7 @@ private:
         Widgets::Window::Window({
             .widget = { .classNames = { "bar" } },
             .child = Widgets::CenterBox::create({
-                .left = Widgets::Box::create({
-                    .children = { ClonerButton::create({ .widget = { .classNames = { "test-button" } } }) }
-                }),
+                .left = WorkspaceSelector::create(),
                 .center = Clock::create({ .widget = { .classNames = { "clock" } } }),
                 .right = Widgets::Button::create({
                     .widget = { .classNames = { "close-button" }},

@@ -66,8 +66,11 @@ void Widgets::Widget::__init() {
     applyProps();
 }
 
-Widgets::Widget::Widget(Gtk::Widget* widget) : _widget(widget) {}
-Widgets::Widget::Widget(Gtk::Widget* widget, WidgetProps props) : _widget(widget), _props(props) {}
+Widgets::Widget::Widget(Gtk::Widget* widget)
+    : _widget(widget) {}
+Widgets::Widget::Widget(Gtk::Widget* widget, WidgetProps props)
+    : _widget(widget)
+    , _props(props) {}
 
 Widgets::Widget::~Widget() {}
 
@@ -87,4 +90,22 @@ void Widgets::Widget::setHeightRequest(int heightRequest) {
 void Widgets::Widget::setCSS(std::string css) {
     getWidgetProps().css = css;
     applyCSS();
+};
+
+void Widgets::Widget::toggleClassName(std::string className) {
+    if(_widget->has_css_class(className)) {
+        _widget->remove_css_class(className);
+    }
+    else {
+        _widget->add_css_class(className);
+    }
+};
+
+void Widgets::Widget::toggleClassName(std::string className, bool active) {
+    if(active) {
+        _widget->add_css_class(className);
+    }
+    else {
+        _widget->remove_css_class(className);
+    }
 };

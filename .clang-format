@@ -34,3 +34,6 @@ IndentCaseLabels: false
 AllowShortCaseLabelsOnASingleLine: true
 
 AlignAfterOpenBracket: BlockIndent
+
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: Never
