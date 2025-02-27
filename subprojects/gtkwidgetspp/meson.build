@@ -8,15 +8,20 @@ libgtkwidgetspp = static_library(
             'src/Utils/CSSUtil.cpp',
             'src/Utils/PathUtil.cpp',
             'src/Utils/ProcessUtil.cpp',
+            'src/Utils/StringUtil.cpp',
 
             'src/Widgets/Widget.cpp',
             'src/Widgets/Label.cpp',
+            'src/Widgets/Icon.cpp',
             'src/Widgets/Button.cpp',
             'src/Widgets/Box.cpp',
             'src/Widgets/CenterBox.cpp',
             'src/Widgets/Window.cpp',
 
-            'src/Services/Hyprservice.cpp'
+            'src/Services/Hyprservice/client.cpp',
+            'src/Services/Hyprservice/workspace.cpp',
+            'src/Services/Hyprservice/monitor.cpp',
+            'src/Services/Hyprservice/service.cpp'
         )
     ],
     include_directories : inc,

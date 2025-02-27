@@ -3,7 +3,7 @@
 #include <unistd.h>
 
 #include <Services/Hyprservice.hpp>
-#include <algorithm>
+#include <Utils/StringUtil.hpp>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <set>
@@ -11,46 +11,7 @@
 #include <utility>
 #include <vector>
 
-#pragma region __UTIL__
-
-constexpr uint64_t hashFunc(const char* str, size_t offset = 0) {
-    return !str[offset] ? 5381 : (hashFunc(str, offset + 1) * 33) ^ str[offset];
-}
-
-constexpr uint64_t operator""_hash(const char* str, size_t len) {
-    return hashFunc(str);
-}
-
-std::vector<std::string> split(std::string str, const char* delim) {
-    std::vector<std::string> out;
-
-    const char *strPtr = str.c_str(), *tmp;
-    size_t delimLen    = strlen(delim);
-    while((tmp = strstr(strPtr, delim)) != NULL) {
-        out.push_back(std::string(strPtr, tmp));
-
-        tmp += delimLen;
-        strPtr = tmp;
-    }
-
-    out.push_back(std::string(strPtr));
-
-    return out;
-}
-
-std::string replace(std::string str, std::string find, std::string replace) {
-    if(find.empty()) return str;
-
-    size_t i = 0;
-    while((i = str.find(find, i)) != std::string::npos) {
-        str.replace(i, find.length(), replace);
-        i += replace.length();
-    }
-
-    return str;
-}
-
-#pragma endregion
+#include "glibmm/refptr.h"
 
 #pragma region __HYPRACTIVES__
 
@@ -121,74 +82,30 @@ void Services::Hyprservice::watchStream(const Glib::RefPtr<Gio::DataInputStream>
 
 void Services::Hyprservice::syncMonitors() {
     nlohmann::json json = nlohmann::json::parse(message("j/monitors"));
-    std::vector<Monitor*> monitors, monitorList = getMonitors();
-    std::set<uint64_t> activeMonitors;
+    std::vector<Glib::RefPtr<Monitor>> monitors, monitorList = get_monitors();
 
     for(nlohmann::json monitorJSON : json) {
-        auto it = std::find_if(monitorList.begin(), monitorList.end(), [&](const Monitor* x) {
-            return monitorJSON["id"] == x->id;
+        auto it = std::find_if(monitorList.begin(), monitorList.end(), [&](const Glib::RefPtr<Monitor>& x) {
+            return monitorJSON["id"] == x->get_id();
         });
 
-        activeMonitors.insert(monitorJSON["id"].get<uint64_t>());
-        Monitor* monitor = (it == monitorList.end() ? new Monitor() : *it);
+        Glib::RefPtr<Monitor> monitor;
+        if(it != monitorList.end()) {
+            monitor = *(it.base());
+            monitor->updateFromJSON(monitorJSON);
 
-#define M_ARG(argName) monitor->argName = monitorJSON[#argName];
+            monitors.push_back(monitor);
 
-        M_ARG(id);
-
-        M_ARG(name);
-        M_ARG(description);
-        M_ARG(make);
-        M_ARG(model);
-        M_ARG(serial);
-
-        M_ARG(width);
-        M_ARG(height);
-
-        M_ARG(refreshRate);
-
-        M_ARG(x);
-        M_ARG(y);
-
-        monitor->activeWorkspace.id   = monitorJSON["activeWorkspace"]["id"];
-        monitor->activeWorkspace.name = monitorJSON["activeWorkspace"]["name"];
-
-        monitor->specialWorkspace.id   = monitorJSON["specialWorkspace"]["id"];
-        monitor->specialWorkspace.name = monitorJSON["specialWorkspace"]["name"];
-
-        monitor->reserved[0] = monitorJSON["reserved"][0];
-        monitor->reserved[1] = monitorJSON["reserved"][1];
-        monitor->reserved[2] = monitorJSON["reserved"][2];
-        monitor->reserved[3] = monitorJSON["reserved"][3];
-
-        M_ARG(scale);
-        M_ARG(transform);
-
-        M_ARG(focused);
-        M_ARG(dpmsStatus);
-        M_ARG(vrr);
-        M_ARG(activelyTearing);
-
-        monitors.push_back(monitor);
-
-        if(monitor->focused) {
-            if(monitor->activeWorkspace.id != 0) {
-                std::vector<Workspace*> workspaces = getWorkspaces();
-
-                auto it = std::find_if(workspaces.begin(), workspaces.end(), [&](Workspace* workspace) { return workspace->id == monitor->activeWorkspace.id; });
-                if(it != workspaces.end()) {
-                    _actives->property_active_workspace().set_value(*it);
-                }
-            }
-
-            _actives->property_active_monitor().set_value(monitor);
+            _signal_monitor_added.emit(monitor.get());
+        }
+        else {
+            monitor = Glib::make_refptr_for_instance(Monitor::createFromJSON(monitorJSON));
+            monitors.push_back(monitor);
         }
     }
 
-    for(Monitor*& monitor : monitorList) {
-        if(!activeMonitors.contains(monitor->id)) {
-            delete monitor;
-        }
+    if(std::equal(std::begin(monitors), std::end(monitors), std::begin(monitorList), std::end(monitorList))) {
+        return;
     }
 
     _property_monitors.set_value(monitors);
@@ -196,38 +113,30 @@ void Services::Hyprservice::syncMonitors() {
 
 void Services::Hyprservice::syncWorkspaces() {
     nlohmann::json json = nlohmann::json::parse(message("j/workspaces"));
-    std::vector<Workspace*> workspaces, workspaceList = getWorkspaces();
-    std::set<uint64_t> activeWorkspaces;
+    std::vector<Glib::RefPtr<Workspace>> workspaces, workspaceList = get_workspaces();
 
     for(nlohmann::json workspaceJSON : json) {
-        auto it = std::find_if(workspaceList.begin(), workspaceList.end(), [&](const Workspace* x) {
-            return workspaceJSON["id"] == x->id;
+        auto it = std::find_if(workspaceList.begin(), workspaceList.end(), [&](const Glib::RefPtr<Workspace>& x) {
+            return workspaceJSON["id"] == x->get_id();
         });
 
-        activeWorkspaces.insert(workspaceJSON["id"].get<uint64_t>());
-        Workspace* workspace = (it == workspaceList.end() ? new Workspace() : *it);
+        Glib::RefPtr<Workspace> workspace;
+        if(it != workspaceList.end()) {
+            workspace = *(it.base());
+            workspace->updateFromJSON(workspaceJSON);
 
-#define W_ARG(argName) workspace->argName = workspaceJSON[#argName];
+            workspaces.push_back(workspace);
 
-        W_ARG(id);
-        W_ARG(monitorID);
-        W_ARG(windows);
-
-        W_ARG(name);
-        W_ARG(monitor);
-
-        W_ARG(hasfullscreen);
-
-        W_ARG(lastwindow);
-        W_ARG(lastwindowtitle);
-
-        workspaces.push_back(workspace);
+            _signal_workspace_added.emit(workspace.get());
+        }
+        else {
+            workspace = Glib::make_refptr_for_instance(Workspace::createFromJSON(workspaceJSON));
+            workspaces.push_back(workspace);
+        }
     }
 
-    for(Workspace*& workspace : workspaceList) {
-        if(!activeWorkspaces.contains(workspace->id)) {
-            delete workspace;
-        }
+    if(std::equal(std::begin(workspaces), std::end(workspaces), std::begin(workspaceList), std::end(workspaceList))) {
+        return;
     }
 
     _property_workspaces.set_value(workspaces);
@@ -235,119 +144,134 @@ void Services::Hyprservice::syncWorkspaces() {
 
 void Services::Hyprservice::syncClients() {
     nlohmann::json json = nlohmann::json::parse(message("j/clients"));
-    std::vector<Client*> clients, clientList = getClients();
-    std::set<std::string> activeClients;
+    std::vector<Glib::RefPtr<Client>> clients, clientList = get_clients();
 
     for(nlohmann::json clientJSON : json) {
-        auto it = std::find_if(clientList.begin(), clientList.end(), [&](const Client* x) {
-            return clientJSON["address"] == x->address;
+        auto it = std::find_if(clientList.begin(), clientList.end(), [&](const Glib::RefPtr<Client>& x) {
+            return clientJSON["address"] == x->get_address();
         });
 
-        activeClients.insert(clientJSON["address"]);
-        Client* client = (it == clientList.end() ? new Client() : *it);
+        Glib::RefPtr<Client> client;
+        if(it != clientList.end()) {
+            client = *(it.base());
+            client->updateFromJSON(clientJSON);
 
-#define C_ARG(argName) client->argName = clientJSON[#argName];
-#define C_ARGJ(argName, jsonName) client->argName = clientJSON[#jsonName];
+            clients.push_back(client);
 
-        C_ARG(address);
-
-        C_ARG(mapped);
-        C_ARG(hidden);
-
-        client->at[0] = clientJSON["at"][0];
-        client->at[1] = clientJSON["at"][1];
-
-        client->size[0] = clientJSON["size"][0];
-        client->size[1] = clientJSON["size"][1];
-
-        C_ARG(floating);
-
-        C_ARG(monitor);
-        C_ARG(pid);
-
-        C_ARGJ(applicationClass, class);
-        C_ARG(title);
-        C_ARG(initialClass);
-        C_ARG(initialTitle);
-
-        C_ARG(xwayland);
-        C_ARG(pinned);
-
-        C_ARG(fullscreen);
-
-        C_ARG(grouped);
-        C_ARG(swallowing);
-
-        C_ARG(focusHistoryID);
-
-        clients.push_back(client);
-
-        if(client->focusHistoryID == 0 && _actives->getActiveClient() != client) {
-            _actives->property_active_client().set_value(client);
+            _signal_client_added.emit(client.get());
+        }
+        else {
+            client = Glib::make_refptr_for_instance(Client::createFromJSON(clientJSON));
+            clients.push_back(client);
         }
     }
 
-    for(Client*& client : clientList) {
-        if(!activeClients.contains(client->address)) {
-            delete client;
-        }
+    if(std::equal(std::begin(clients), std::end(clients), std::begin(clientList), std::end(clientList))) {
+        return;
     }
 
     _property_clients.set_value(clients);
 }
 
+void Services::Hyprservice::syncActives() {
+    for(Glib::RefPtr<Client>& client : get_clients()) {
+        if(client->get_focusHistoryID() == 0 && _actives->get_active_client() != client.get()) {
+            _actives->property_active_client().set_value(client.get());
+
+            break;
+        }
+    }
+
+    for(Glib::RefPtr<Monitor>& monitor : get_monitors()) {
+        if(monitor->get_focused() == true) {
+            if(_actives->get_active_monitor() != monitor.get()) {
+                _actives->property_active_monitor().set_value(monitor.get());
+            }
+
+            if(_actives->get_active_workspace() == nullptr || _actives->get_active_workspace()->get_id() != monitor->get_activeWorkspace()) {
+                if(monitor->get_activeWorkspace() == 0) break;
+
+                for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
+                    if(workspace->get_id() == monitor->get_activeWorkspace()) {
+                        _actives->property_active_workspace().set_value(workspace.get());
+
+                        break;
+                    }
+                }
+            }
+
+            break;
+        }
+    }
+}
+
 #define VERBOSE_EVENTS false
+#define LOOKUP_CLIENT(address, if_found, if_not_found)                                                                                                                                              \
+    {                                                                                                                                                                                               \
+        const std::vector<Glib::RefPtr<Client>>& _client_arr_ = get_clients();                                                                                                                      \
+        auto __it__                                           = std::find_if(_client_arr_.begin(), _client_arr_.end(), [&](const Glib::RefPtr<Client>& c) { return c->get_address() == address; }); \
+        if(__it__ != _client_arr_.end()) {                                                                                                                                                          \
+            Client* client = (*(__it__.base())).get();                                                                                                                                              \
+            if_found                                                                                                                                                                                \
+        }                                                                                                                                                                                           \
+        else {                                                                                                                                                                                      \
+            if_not_found                                                                                                                                                                            \
+        }                                                                                                                                                                                           \
+    }
+
 void Services::Hyprservice::onEvent(std::string event) {
-    std::vector<std::string> splitStr = split(event, ">>");
+    std::vector<std::string> splitStr = Util::String::split(event, ">>");
 
     std::string key               = splitStr[0];
-    std::vector<std::string> args = split(splitStr[1], ",");
+    std::vector<std::string> args = Util::String::split(splitStr[1], ",");
 
     using namespace std::literals;
 
-    switch(hashFunc(key.c_str())) {
+    switch(Util::String::hashFunc(key.c_str())) {
     case "workspace"_hash:
     case "focusedmon"_hash:
         if(VERBOSE_EVENTS) printf("workspace or focusedmon called with args: %s\n", splitStr[1].c_str());
         syncMonitors();
+        syncActives();
         break;
     case "monitoradded"_hash:
         if(VERBOSE_EVENTS) printf("monitor added called with args: %s\n", splitStr[1].c_str());
         syncMonitors();
+        syncActives();
 
-        _signal_monitor_added.emit(args[0]);
+        // _signal_monitor_added.emit(args[0]);
         break;
     case "monitoremoved"_hash:
         if(VERBOSE_EVENTS) printf("monitor removed called with args: %s\n", splitStr[1].c_str());
         syncMonitors();
+        syncActives();
 
         _signal_monitor_removed.emit(args[0]);
         break;
     case "createworkspace"_hash:
         if(VERBOSE_EVENTS) printf("create workspace called with args: %s\n", splitStr[1].c_str());
         syncWorkspaces();
-
-        _signal_workspace_added.emit(args[0]);
+        syncActives();
         break;
     case "destroyworkspace"_hash:
         if(VERBOSE_EVENTS) printf("destroy workspace called with args: %s\n", splitStr[1].c_str());
         syncWorkspaces();
-
-        _signal_workspace_removed.emit(args[0]);
+        syncActives();
         break;
     case "openwindow"_hash:
         if(VERBOSE_EVENTS) printf("open window called with args: %s\n", splitStr[1].c_str());
 
         syncClients();
         syncWorkspaces();
+        syncActives();
 
-        _signal_client_added.emit(fmt::format("0x{}", args[0]));
         break;
     case "closewindow"_hash:
         if(VERBOSE_EVENTS) printf("close window called with args: %s\n", splitStr[1].c_str());
 
-        syncWorkspaces();
         syncClients();
+        syncWorkspaces();
+        syncActives();
 
         _signal_client_removed.emit(fmt::format("0x{}", args[0]));
         break;
@@ -355,8 +279,9 @@ void Services::Hyprservice::onEvent(std::string event) {
     case "windowtitle"_hash:
         if(VERBOSE_EVENTS) printf("move window or window title called with args: %s\n", splitStr[1].c_str());
 
-        syncClients();
         syncWorkspaces();
+        syncClients();
+        syncActives();
 
         break;
 
@@ -366,6 +291,7 @@ void Services::Hyprservice::onEvent(std::string event) {
         syncClients();
         syncWorkspaces();
         syncMonitors();
+        syncActives();
 
         break;
 
@@ -373,13 +299,15 @@ void Services::Hyprservice::onEvent(std::string event) {
         if(VERBOSE_EVENTS) printf("fullscreen called with args: %s\n", splitStr[1].c_str());
         syncClients();
         syncWorkspaces();
+        syncActives();
 
         _signal_fullscreen.emit(args[0][0] == '1');
         break;
     case "activewindow"_hash:
         if(VERBOSE_EVENTS) printf("activewindow called with args: %s\n", splitStr[1].c_str());
-
         syncClients();
+        syncWorkspaces();
+        syncActives();
 
         break;
     case "activewindowv2"_hash:
@@ -388,8 +316,9 @@ void Services::Hyprservice::onEvent(std::string event) {
         break;
     case "urgent"_hash:
         if(VERBOSE_EVENTS) printf("urgent called with args: %s\n", splitStr[1].c_str());
+        syncClients();
 
-        _signal_urgent_client.emit(fmt::format("0x{}", args[0]));
+        // _signal_urgent_client.emit(fmt::format("0x{}", args[0]));
         break;
     default: break;
     }
@@ -419,20 +348,15 @@ Services::Hyprservice::Hyprservice()
     syncWorkspaces();
     syncMonitors();
 
-    printf("%s\n", _actives->getActiveClient()->address.c_str());
-    _actives->property_active_monitor().signal_changed().connect([&]() { printf("new active monitor: %s\n", _actives->getActiveMonitor()->name.c_str()); });
-    _actives->property_active_workspace().signal_changed().connect([&]() { printf("new active workspace: %s\n", _actives->getActiveWorkspace()->name.c_str()); });
-    _actives->property_active_client().signal_changed().connect([&]() { printf("new active window: %s\n\n", _actives->getActiveClient()->title.c_str()); });
+    // _actives->property_active_monitor().signal_changed().connect([&]() { printf("new active monitor: %s\n", _actives->get_active_monitor()->name.c_str()); });
+    // _actives->property_active_workspace().signal_changed().connect([&]() { printf("new active workspace: %s\n", _actives->get_active_workspace()->name.c_str()); });
+    // _actives->property_active_client().signal_changed().connect([&]() { printf("new active window: %s\n\n", _actives->get_active_client()->get_title().c_str()); });
 
     this->watchStream(pair.second);
     printf("created socket\n");
 }
 
 #pragma region __GETTERS__
-
-std::vector<Monitor*> Services::Hyprservice::getMonitors() { return _property_monitors.get_value(); }
-std::vector<Workspace*> Services::Hyprservice::getWorkspaces() { return _property_workspaces.get_value(); }
-std::vector<Client*> Services::Hyprservice::getClients() { return _property_clients.get_value(); }
 
 Hypractives* Services::Hyprservice::getActives() { return _actives; }
 

@@ -10,18 +10,27 @@ void Widgets::Box::applyChildren() {
     }
 }
 
+void Widgets::Box::applyGap() {
+    set_spacing(getBoxProps().spacing);
+}
+
 void Widgets::Box::applyProps() {
     Widgets::Widget::applyProps();
 
     applyChildren();
+    applyGap();
 }
 
 void Widgets::Box::__init() {
     Widgets::Widget::__init();
 }
 
-Widgets::Box::Box() : Widgets::Widget(this), _props({}) {}
-Widgets::Box::Box(BoxProps props) : Widgets::Widget(this), _props(props) {}
+Widgets::Box::Box()
+    : Widgets::Widget(this)
+    , _props({}) {}
+Widgets::Box::Box(BoxProps props)
+    : Widgets::Widget(this)
+    , _props(props) {}
 
 Widgets::Box::~Box() {}
 

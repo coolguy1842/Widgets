@@ -1,0 +1,6 @@
+<gresources>
+  <gresource prefix="/com/coolguy1842/widgets/icons">
+    <file>scalable/emblems/active-workspace-symbolic.svg</file>
+    <file>scalable/emblems/inactive-workspace-symbolic.svg</file>
+  </gresource>
+</gresources>

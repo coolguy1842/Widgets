@@ -14,7 +14,11 @@ void Widgets::Label::__init() {
     Widgets::Widget::__init();
 }
 
-Widgets::Label::Label() : Widgets::Widget(this), _props({}) {}
-Widgets::Label::Label(LabelProps props) : Widgets::Widget(this), _props(props) {}
+Widgets::Label::Label()
+    : Widgets::Widget(this)
+    , _props({}) {}
+Widgets::Label::Label(LabelProps props)
+    : Widgets::Widget(this)
+    , _props(props) {}
 
 Widgets::Label::~Label() {}

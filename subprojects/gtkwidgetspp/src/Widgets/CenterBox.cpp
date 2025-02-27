@@ -36,7 +36,11 @@ void Widgets::CenterBox::__init() {
     Widgets::Widget::__init();
 }
 
-Widgets::CenterBox::CenterBox() : Widgets::Widget(this), _props({}) {}
-Widgets::CenterBox::CenterBox(CenterBoxProps props) : Widgets::Widget(this), _props(props) {}
+Widgets::CenterBox::CenterBox()
+    : Widgets::Widget(this)
+    , _props({}) {}
+Widgets::CenterBox::CenterBox(CenterBoxProps props)
+    : Widgets::Widget(this)
+    , _props(props) {}
 
 Widgets::CenterBox::~CenterBox() {}

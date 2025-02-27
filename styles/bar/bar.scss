@@ -1,13 +1,15 @@
+$bar-accent-color: #5D93B0;
+
 .bar {
     background-color: #000000BF;
-    color: #5D93B0;
+    color: $bar-accent-color;
 }
 
 .test-button {
     background-color: rgba(0, 0, 0, 0.171);
 
     &:hover {
-        background-color: #5D93B0;
+        background-color: $bar-accent-color;
     }
 }
 
@@ -19,10 +21,12 @@
     }
 }
 
-.workspace-button {
-    background-color: purple;
+.workspace-selector {
+    color: white;
+}
 
-    &.active {
-        background-color: green;
-    }
+.workspace-button {
+    all: unset;
+
+    color: $bar-accent-color;
 }

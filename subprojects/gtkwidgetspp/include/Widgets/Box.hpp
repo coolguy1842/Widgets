@@ -3,12 +3,14 @@
 #include <gtkmm-4.0/gtkmm.h>
 
 #include <Widgets/Widget.hpp>
+#include <cstdint>
 #include <vector>
 
 struct BoxProps {
-    WidgetProps widget;
+    WidgetProps widget = {};
 
-    std::vector<Gtk::Widget*> children;
+    std::vector<Gtk::Widget*> children = {};
+    uint64_t spacing                   = 0;
 };
 
 namespace Widgets {
@@ -21,6 +23,7 @@ protected:
     virtual BoxProps& getBoxProps() { return _props; }
 
     virtual void applyChildren();
+    virtual void applyGap();
     virtual void applyProps();
 
     Box();

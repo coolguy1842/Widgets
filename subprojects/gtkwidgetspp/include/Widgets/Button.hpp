@@ -4,7 +4,13 @@
 
 #include <Widgets/Widget.hpp>
 #include <functional>
+#include <variant>
 #include <vector>
+
+#include "gdkmm/pixbuf.h"
+#include "glibmm/refptr.h"
+#include "gtkmm/iconpaintable.h"
+#include "gtkmm/widget.h"
 
 namespace Widgets {
 class Button;
@@ -15,7 +21,8 @@ typedef std::function<bool(Widgets::Button* button)> onButtonClickedCallback;
 struct ButtonProps {
     WidgetProps widget = {};
 
-    std::string text = "";
+    std::variant<std::string, Gtk::Widget*, Glib::RefPtr<Gdk::Pixbuf>, Glib::RefPtr<Gtk::IconPaintable>> child = { "" };
+
     // return false to disconnect the signal
     onButtonClickedCallback on_click;
 };
@@ -30,7 +37,7 @@ protected:
     virtual WidgetProps& getWidgetProps() { return _props.widget; }
     virtual ButtonProps& getButtonProps() { return _props; }
 
-    virtual void applyText();
+    virtual void applyChild();
     virtual void applyOnClick();
     virtual void applyProps();
 
@@ -51,6 +58,8 @@ public:
 
     // call the base classes function if extending this class
     virtual void on_clicked();
+
+    void setChild(std::variant<std::string, Gtk::Widget*, Glib::RefPtr<Gdk::Pixbuf>, Glib::RefPtr<Gtk::IconPaintable>> child);
 };
 
 };  // namespace Widgets

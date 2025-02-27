@@ -5,6 +5,8 @@
 #include <Widgets/Widget.hpp>
 #include <bitset>
 
+#include "gdkmm/monitor.h"
+
 enum AnchorEdge {
     NONE   = 0b0000,
     LEFT   = 0b0001,
@@ -14,14 +16,16 @@ enum AnchorEdge {
 };
 
 struct WindowProps {
-    WidgetProps widget;
+    WidgetProps widget = {};
 
-    Gtk::Widget* child;
+    Gdk::Monitor* monitor = nullptr;
+
+    Gtk::Widget* child = nullptr;
     std::bitset<4> anchor{ NONE };
 
     // -1 is auto, anything below -1 will make it none and above 0 will set a
     // specific exclusive zone, 0 does none
-    int64_t exclusive;
+    int64_t exclusive = 0;
 };
 
 namespace Widgets {

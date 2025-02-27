@@ -17,7 +17,6 @@ private:
     std::vector<Gtk::Window*> _windows;
 
     std::vector<Glib::RefPtr<Gtk::CssProvider>> _cssProviders;
-
     int on_handle_local_options(const Glib::RefPtr<Glib::VariantDict>& options) override {
         std::string filepath;
         options->lookup_value("style", filepath);
@@ -60,7 +59,9 @@ private:
             loadSCSS(_styleFilepath.value().c_str());
         }
 
-        this->add_window(*Bar::create());
+        for(Glib::RefPtr<Monitor>& monitor : Services::Hyprservice::getInstance()->get_monitors()) {
+            this->add_window(*Bar::create(monitor.get()));
+        }
     }
 
     void on_shutdown() override {
@@ -76,7 +77,8 @@ private:
     }
 
 public:
-    Application() : Gtk::Application("com.coolguy1842.widgets", Gtk::Application::Flags::HANDLES_COMMAND_LINE) {
+    Application()
+        : Gtk::Application("com.coolguy1842.widgets", Gtk::Application::Flags::HANDLES_COMMAND_LINE) {
         add_main_option_entry(OptionType::FILENAME, "style", 's', "Path to the SCSS/CSS entry file");
     }
 

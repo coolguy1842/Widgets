@@ -3,6 +3,7 @@
 
 #include <Widgets/Window.hpp>
 #include <bitset>
+#include <cstdint>
 
 void Widgets::Window::applyChild() {
     this->set_child(*getWindowProps().child);
@@ -36,10 +37,18 @@ void Widgets::Window::__init() {
     gtk_layer_init_for_window(this->gobj());
 
     Widgets::Widget::__init();
+
+    if(getWindowProps().monitor != nullptr) {
+        gtk_layer_set_monitor(gobj(), getWindowProps().monitor->gobj());
+    }
 }
 
-Widgets::Window::Window() : Widgets::Widget(this), _props({}) {}
-Widgets::Window::Window(WindowProps props) : Widgets::Widget(this), _props(props) {}
+Widgets::Window::Window()
+    : Widgets::Widget(this)
+    , _props({}) {}
+Widgets::Window::Window(WindowProps props)
+    : Widgets::Widget(this)
+    , _props(props) {}
 
 Widgets::Window::~Window() {}
 
