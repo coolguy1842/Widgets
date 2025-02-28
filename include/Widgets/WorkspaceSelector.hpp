@@ -6,16 +6,11 @@
 #include <Widgets/Box.hpp>
 #include <Widgets/Button.hpp>
 #include <Widgets/Icon.hpp>
+#include <Widgets/Widget.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <set>
 #include <vector>
-
-#include "gdkmm/display.h"
-#include "glibmm/refptr.h"
-#include "gtkmm/enums.h"
-#include "gtkmm/iconpaintable.h"
-#include "gtkmm/icontheme.h"
 
 struct WorkspaceButtonProps {
     WidgetProps widget = {};
@@ -38,8 +33,8 @@ protected:
     WorkspaceButtonProps _props;
     bool _prevActive;
 
-    Workspace* _workspace;
-    Monitor* _monitor;
+    Services::Hypr::Workspace* _workspace;
+    Services::Hypr::Monitor* _monitor;
 
     virtual WidgetProps& getWidgetProps() { return _props.widget; }
     virtual WidgetProps getWidgetProps() const { return _props.widget; }
@@ -58,7 +53,7 @@ protected:
         , _props(props) {};
 
     void _checkActive(bool first = false) {
-        bool isActive = _workspace != nullptr && Services::Hyprservice::getInstance()->getMonitor(_workspace->get_monitorID())->get_activeWorkspace() == getWorkspaceID();
+        bool isActive = _workspace != nullptr && Services::Hypr::Hyprservice::getInstance()->getMonitor(_workspace->get_monitorID())->get_activeWorkspace() == getWorkspaceID();
         if(first || isActive != _prevActive) {
             icon->set(isActive ? _activeWorkspace : _inactiveWorkspace);
 
@@ -95,8 +90,8 @@ public:
         icon->set(_inactiveWorkspace);
         setChild(icon);
 
-        Services::Hyprservice* hyprservice = Services::Hyprservice::getInstance();
-        _workspace                         = hyprservice->getWorkspace(getWorkspaceID());
+        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
+        _workspace                               = hyprservice->getWorkspace(getWorkspaceID());
 
         if(_workspace != nullptr) {
             resetActiveSignal();
@@ -107,7 +102,7 @@ public:
     }
 
     void resetActiveSignal() {
-        Services::Hyprservice* hyprservice = Services::Hyprservice::getInstance();
+        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
 
         if(_workspace != nullptr) {
             _monitor = hyprservice->getMonitor(_workspace->get_monitorID());
@@ -120,7 +115,7 @@ public:
     void on_clicked() {
         Widgets::Button::on_clicked();
 
-        Services::Hyprservice::getInstance()->message(fmt::format("dispatch workspace {}", _props.workspaceID));
+        Services::Hypr::Hyprservice::getInstance()->message(fmt::format("dispatch workspace {}", _props.workspaceID));
     }
 
     int64_t getWorkspaceID() const { return getWorkspaceButtonProps().workspaceID; }
@@ -133,9 +128,7 @@ struct WorkspaceSelectorProps {
     };
 
     WidgetProps widget = {};
-    BoxProps box       = {
-              .spacing = 1
-    };
+    BoxProps box       = { .spacing = 1 };
 
     uint64_t monitorID              = 0;
     ScrollDirection scrollDirection = ScrollDirection::FORWARD;
@@ -157,10 +150,10 @@ protected:
         , _props(props) {};
 
     void reloadChildren() {
-        const std::vector<Glib::RefPtr<Workspace>>& workspaces = Services::Hyprservice::getInstance()->get_workspaces();
+        const std::vector<Glib::RefPtr<Services::Hypr::Workspace>>& workspaces = Services::Hypr::Hyprservice::getInstance()->get_workspaces();
         std::set<uint64_t> activeWorkspaces, currentChildrenIDs;
 
-        for(const Glib::RefPtr<Workspace>& workspace : workspaces) {
+        for(const Glib::RefPtr<Services::Hypr::Workspace>& workspace : workspaces) {
             activeWorkspaces.insert(workspace->get_id());
         }
 
@@ -178,7 +171,7 @@ protected:
             currentChildrenIDs.insert(button->getWorkspaceID());
         }
 
-        for(const Glib::RefPtr<Workspace>& workspace : workspaces) {
+        for(const Glib::RefPtr<Services::Hypr::Workspace>& workspace : workspaces) {
             if(workspace->get_monitorID() != _props.monitorID || currentChildrenIDs.contains(workspace->get_id()) || workspace->get_name().starts_with("special:")) {
                 continue;
             }
@@ -198,12 +191,12 @@ protected:
 
     void onScroll(double dX, double dY) {
         if(getWorkspaceSelectorProps().scrollDirection == WorkspaceSelectorProps::ScrollDirection::FORWARD ? dY > 0 : dY < 1) {
-            Services::Hyprservice::getInstance()->message("dispatch workspace m+1");
+            Services::Hypr::Hyprservice::getInstance()->message("dispatch workspace m+1");
 
             return;
         }
 
-        Services::Hyprservice::getInstance()->message("dispatch workspace m-1");
+        Services::Hypr::Hyprservice::getInstance()->message("dispatch workspace m-1");
     }
 
 public:
@@ -222,9 +215,7 @@ public:
 
         reloadChildren();
 
-        set_margin_start(30);
-
-        Services::Hyprservice::getInstance()->property_workspaces().signal_changed().connect([&]() { reloadChildren(); });
+        Services::Hypr::Hyprservice::getInstance()->property_workspaces().signal_changed().connect([&]() { reloadChildren(); });
 
         auto scrollController = Gtk::EventControllerScroll::create();
         scrollController->set_flags(Gtk::EventControllerScroll::Flags::VERTICAL | Gtk::EventControllerScroll::Flags::DISCRETE);

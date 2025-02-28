@@ -6,9 +6,14 @@
 #include <Services/Hyprservice.hpp>
 #include <Utils/CSSUtil.hpp>
 #include <Windows/Bar.hpp>
+#include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <cstdio>
+#include <future>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 class Application : public Gtk::Application {
@@ -34,6 +39,41 @@ private:
         return -1;
     }
 
+    void syncWindows() {
+        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
+
+        for(Gtk::Window* window : _windows) {
+            remove_window(*window);
+            window->close();
+        }
+
+        for(Glib::RefPtr<Services::Hypr::Monitor>& monitor : hyprservice->get_monitors()) {
+            Bar* bar = Bar::create(monitor.get());
+            add_window(*bar);
+        }
+    }
+
+    void on_monitor_added(Services::Hypr::Monitor* monitor) {
+        printf("monitor added\n");
+        Glib::RefPtr<Glib::MainContext> context = Glib::MainContext::get_default();
+
+        auto async = std::async([context, this]() {
+            const uint64_t wait = 1;
+            std::this_thread::sleep_for(std::chrono::seconds(wait));
+
+            context->invoke([this]() {
+                syncWindows();
+
+                return false;
+            });
+        });
+    }
+
+    void on_monitor_removed(std::string monitor) {
+        printf("monitor removed\n");
+        syncWindows();
+    }
+
     void on_window_added(Gtk::Window* window) override {
         Gtk::Application::on_window_added(window);
 
@@ -53,15 +93,16 @@ private:
         Gtk::Application::on_startup();
         printf("startup\n");
 
-        Services::Hyprservice::getInstance();
+        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
 
         if(_styleFilepath.has_value()) {
             loadSCSS(_styleFilepath.value().c_str());
         }
 
-        for(Glib::RefPtr<Monitor>& monitor : Services::Hyprservice::getInstance()->get_monitors()) {
-            this->add_window(*Bar::create(monitor.get()));
-        }
+        syncWindows();
+
+        hyprservice->signal_monitor_added().connect(sigc::mem_fun(*this, &Application::on_monitor_added));
+        hyprservice->signal_monitor_removed().connect(sigc::mem_fun(*this, &Application::on_monitor_removed));
     }
 
     void on_shutdown() override {

@@ -6,7 +6,7 @@
 
 #define INIT_PROPERTY(name) _property_##name(*this, #name)
 
-Workspace::Workspace()
+Services::Hypr::Workspace::Workspace()
     : Glib::ObjectBase(typeid(Workspace))
     , INIT_PROPERTY(id)
     , INIT_PROPERTY(monitorID)
@@ -17,7 +17,7 @@ Workspace::Workspace()
     , INIT_PROPERTY(lastwindow)
     , INIT_PROPERTY(lastwindowtitle) {}
 
-Workspace* Workspace::createFromJSON(nlohmann::json json) {
+Services::Hypr::Workspace* Services::Hypr::Workspace::createFromJSON(nlohmann::json json) {
     Workspace* workspace = new Workspace();
     workspace->updateFromJSON(json);
 
@@ -32,7 +32,7 @@ Workspace* Workspace::createFromJSON(nlohmann::json json) {
 
 #define ARG(name) ARG__(name, json[#name])
 
-void Workspace::updateFromJSON(nlohmann::json json) {
+void Services::Hypr::Workspace::updateFromJSON(nlohmann::json json) {
     Workspace fakeWorkspace;
 
     ARG(id);
@@ -48,10 +48,10 @@ void Workspace::updateFromJSON(nlohmann::json json) {
     ARG(lastwindowtitle);
 }
 
-Workspace::~Workspace() {
+Services::Hypr::Workspace::~Workspace() {
 }
 
-Workspace* Services::Hyprservice::getWorkspace(int64_t id) {
+Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(int64_t id) {
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_id() == id) {
             return workspace.get();
@@ -61,7 +61,7 @@ Workspace* Services::Hyprservice::getWorkspace(int64_t id) {
     return nullptr;
 }
 
-Workspace* Services::Hyprservice::getWorkspace(std::string name) {
+Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(std::string name) {
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_name() == name) {
             return workspace.get();
@@ -71,7 +71,7 @@ Workspace* Services::Hyprservice::getWorkspace(std::string name) {
     return nullptr;
 }
 
-std::vector<Workspace*> Services::Hyprservice::getWorkspaces(uint64_t monitorID) {
+std::vector<Services::Hypr::Workspace*> Services::Hypr::Hyprservice::getWorkspaces(uint64_t monitorID) {
     std::vector<Workspace*> workspaces = {};
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_monitorID() == monitorID) {
@@ -80,4 +80,21 @@ std::vector<Workspace*> Services::Hyprservice::getWorkspaces(uint64_t monitorID)
     }
 
     return workspaces;
+}
+
+void Services::Hypr::Hyprservice::syncWorkspaces() {
+    const nlohmann::json json = nlohmann::json::parse(message("j/workspaces"));
+    std::vector<Glib::RefPtr<Workspace>> workspaces, workspaceList = get_workspaces();
+
+    for(const nlohmann::json& workspaceJSON : json) {
+        auto it = std::find_if(workspaceList.begin(), workspaceList.end(), [&](const Glib::RefPtr<Workspace>& x) {
+            return workspaceJSON["id"] == x->get_id();
+        });
+
+        workspaces.push_back(it != workspaceList.end() ? *(it.base()) : Glib::make_refptr_for_instance(Workspace::createFromJSON(workspaceJSON)));
+    }
+
+    if(!std::equal(std::begin(workspaces), std::end(workspaces), std::begin(workspaceList), std::end(workspaceList))) {
+        _property_workspaces.set_value(workspaces);
+    }
 }

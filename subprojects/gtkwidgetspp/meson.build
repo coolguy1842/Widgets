@@ -21,6 +21,9 @@ libgtkwidgetspp = static_library(
             'src/Services/Hyprservice/client.cpp',
             'src/Services/Hyprservice/workspace.cpp',
             'src/Services/Hyprservice/monitor.cpp',
+            'src/Services/Hyprservice/actives.cpp',
+            'src/Services/Hyprservice/socket.cpp',
+            'src/Services/Hyprservice/event.cpp',
             'src/Services/Hyprservice/service.cpp'
         )
     ],

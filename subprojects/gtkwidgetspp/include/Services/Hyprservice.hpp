@@ -27,20 +27,12 @@ public:                                                           \
 protected:                                                        \
     type_signal_##name _signal_##name;
 
+namespace Services::Hypr {
+
 template <typename T>
 struct Bounds {
     T x;
     T y;
-
-    Bounds(const Bounds<T>& other)
-        : x(other.x)
-        , y(other.y) {}
-    Bounds(T x, T y)
-        : x(x)
-        , y(y) {}
-    Bounds()
-        : x(0)
-        , y(0) {}
 };
 
 struct Monitor : public Glib::Object {
@@ -87,6 +79,8 @@ public:
     void updateFromJSON(nlohmann::json json);
 
     ~Monitor();
+
+    Gdk::Monitor* getGDKMonitor();
 };
 
 class Workspace : public Glib::Object {
@@ -128,7 +122,7 @@ class Client : public Glib::Object {
     MAKE_PROPERTY(std::string, initialClass);
     MAKE_PROPERTY(std::string, initialTitle);
 
-    MAKE_PROPERTY(int, fullscreen);
+    MAKE_PROPERTY(bool, fullscreen);
     MAKE_PROPERTY(bool, xwayland);
     MAKE_PROPERTY(bool, floating);
     MAKE_PROPERTY(bool, mapped);
@@ -156,8 +150,6 @@ public:
     Hypractives(Monitor* activeMonitor = nullptr, Workspace* activeWorkspace = nullptr, Client* activeClient = nullptr);
     ~Hypractives();
 };
-
-namespace Services {
 
 // https://github.com/Aylur/ags/blob/v1/src/service/hyprland.ts used for reference
 class Hyprservice : public Glib::Object {
@@ -227,7 +219,8 @@ public:
     Workspace* getWorkspace(std::string name);
     std::vector<Workspace*> getWorkspaces(uint64_t monitorID);
 
+    Monitor* getMonitor(std::string name);
     Monitor* getMonitor(uint64_t id);
 };
 
-};  // namespace Services
+};  // namespace Services::Hypr

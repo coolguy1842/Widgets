@@ -1,5 +1,6 @@
 #include <Utils/CSSUtil.hpp>
 #include <Widgets/Widget.hpp>
+#include <variant>
 
 void Widgets::Widget::applyName() {
     _widget->set_name(getWidgetProps().name);
@@ -8,6 +9,11 @@ void Widgets::Widget::applyName() {
 void Widgets::Widget::applyExpands() {
     _widget->set_hexpand(getWidgetProps().hExpand);
     _widget->set_vexpand(getWidgetProps().vExpand);
+}
+
+void Widgets::Widget::applyAligns() {
+    _widget->set_halign(getWidgetProps().hAlign);
+    _widget->set_valign(getWidgetProps().vAlign);
 }
 
 void Widgets::Widget::applySizeRequests() {
@@ -42,9 +48,25 @@ void Widgets::Widget::applyClassNames() {
     }
 }
 
+void Widgets::Widget::applyMargin() {
+    if(std::holds_alternative<int>(getWidgetProps().margin)) {
+        _widget->set_margin(std::get<int>(getWidgetProps().margin));
+    }
+    else if(std::holds_alternative<WidgetProps::Margin>(getWidgetProps().margin)) {
+        WidgetProps::Margin margin = std::get<WidgetProps::Margin>(getWidgetProps().margin);
+
+        _widget->set_margin_start(margin.start);
+        _widget->set_margin_end(margin.end);
+        _widget->set_margin_top(margin.top);
+        _widget->set_margin_bottom(margin.bottom);
+    }
+}
+
 void Widgets::Widget::applyProps() {
     applyName();
     applyExpands();
+    applyAligns();
+    applyMargin();
     applySizeRequests();
     applyVisible();
     applyCSS();

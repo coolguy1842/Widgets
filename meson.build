@@ -12,7 +12,6 @@ iconresources = gnome.compile_resources(
 
 executable(
     'widgets',
-    # sources : [ files('src/Utils/CSSUtil.cpp', 'src/Utils/PathUtil.cpp', 'src/Utils/ProcessUtil.cpp', 'src/Widgets/Widget.cpp', 'src/Widgets/Window.cpp', 'src/main.cpp') ],
     sources: [ iconresources, files('src/main.cpp') ],
     include_directories: include_directories('include'),
     dependencies: [

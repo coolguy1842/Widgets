@@ -2,11 +2,25 @@
 
 #include <gtkmm-4.0/gtkmm.h>
 
+#include <variant>
+
 struct WidgetProps {
+    struct Margin {
+        int start  = 0;
+        int end    = 0;
+        int top    = 0;
+        int bottom = 0;
+    };
+
     std::string name = "";
 
     bool hExpand = false;
     bool vExpand = false;
+
+    Gtk::Align hAlign = Gtk::Align::FILL;
+    Gtk::Align vAlign = Gtk::Align::FILL;
+
+    std::variant<Margin, int> margin = 0;
 
     int widthRequest  = -1;
     int heightRequest = -1;
@@ -29,6 +43,8 @@ protected:
 
     virtual void applyName();
     virtual void applyExpands();
+    virtual void applyAligns();
+    virtual void applyMargin();
     virtual void applySizeRequests();
     virtual void applyVisible();
     virtual void applyCSS();

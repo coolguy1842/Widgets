@@ -11,6 +11,7 @@
 #include <Widgets/Clock.hpp>
 #include <Widgets/ClonerButton.hpp>
 #include <Widgets/Label.hpp>
+#include <Widgets/Widget.hpp>
 #include <Widgets/Window.hpp>
 #include <Widgets/WorkspaceSelector.hpp>
 #include <cstdio>
@@ -18,14 +19,20 @@
 
 class Bar : public Widgets::Window {
 private:
-    Monitor* _monitor;
+    Services::Hypr::Monitor* _monitor;
 
     // clang-format off
-    Bar(Monitor* monitor) :
+    Bar(Services::Hypr::Monitor* monitor) :
         Widgets::Window::Window({
             .widget = { .classNames = { "bar" } },
             .child = Widgets::CenterBox::create({
-                .left = WorkspaceSelector::create({ .widget = { .classNames = { "workspace-selector" } }, .monitorID = (monitor == nullptr ? 0 : monitor->get_id()) }),
+                .left = WorkspaceSelector::create({
+                    .widget = {
+                        .margin = WidgetProps::Margin{ .start = 30 },
+                        .classNames = { "workspace-selector" }
+                    },
+                    .monitorID = (monitor == nullptr ? 0 : monitor->get_id())
+                 }),
                 .center = Clock::create({ .widget = { .classNames = { "clock" } } }),
                 .right = Widgets::Button::create({
                     .widget = { .classNames = { "close-button" }},
@@ -45,8 +52,8 @@ private:
     ~Bar() {}
 
 public:
-    static Glib::RefPtr<Bar> create(Monitor* monitor) {
-        Glib::RefPtr<Bar> bar = Glib::make_refptr_for_instance(new Bar(monitor));
+    static Bar* create(Services::Hypr::Monitor* monitor) {
+        Bar* bar = new Bar(monitor);
         bar->__init();
 
         return bar;
@@ -55,15 +62,17 @@ public:
     void __init() {
         Widgets::Window::__init();
 
-        if(_monitor != nullptr) {
-            auto monitors = Gdk::Display::get_default()->get_monitors();
-            for(uint64_t i = 0; i < monitors->get_n_items(); i++) {
-                Gdk::Monitor* monitor = (Gdk::Monitor*)(monitors->get_typed_object<Gdk::Monitor>(i).get());
+        setMonitor(_monitor);
+    }
 
-                if((std::string)monitor->get_model() == _monitor->get_model()) {
-                    gtk_layer_set_monitor(gobj(), monitor->gobj());
-                    break;
-                }
+    Services::Hypr::Monitor* getMonitor() { return _monitor; }
+    void setMonitor(Services::Hypr::Monitor* monitor) {
+        _monitor = monitor;
+
+        if(_monitor != nullptr) {
+            Gdk::Monitor* gdkMonitor = _monitor->getGDKMonitor();
+            if(gdkMonitor != nullptr) {
+                gtk_layer_set_monitor(gobj(), gdkMonitor->gobj());
             }
         }
     }
