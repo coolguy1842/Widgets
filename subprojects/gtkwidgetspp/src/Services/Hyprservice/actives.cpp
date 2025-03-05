@@ -1,14 +1,14 @@
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 
-Services::Hypr::Hypractives::Hypractives(Monitor* activeMonitor, Workspace* activeWorkspace, Client* activeClient)
-    : Glib::ObjectBase(typeid(Hypractives))
+Services::Hypr::Actives::Actives(Monitor* activeMonitor, Workspace* activeWorkspace, Client* activeClient)
+    : Glib::ObjectBase(typeid(Actives))
     , _property_active_monitor(*this, "active_monitor")
     , _property_active_workspace(*this, "active_workspace")
     , _property_active_client(*this, "active_client") {}
 
-Services::Hypr::Hypractives::~Hypractives() {}
+Services::Hypr::Actives::~Actives() {}
 
-void Services::Hypr::Hyprservice::syncActives() {
+void Services::Hypr::Service::syncActives() {
     for(Glib::RefPtr<Client>& client : get_clients()) {
         if(client->get_focusHistoryID() == 0 && _actives->get_active_client() != client.get()) {
             _actives->property_active_client().set_value(client.get());

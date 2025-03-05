@@ -1,9 +1,18 @@
-project('gtkwidgetspp', 'cpp', default_options : ['cpp_std=c++23'])
+project('gtkwidgetspp', [ 'cpp', 'c' ], default_options : ['c_std=c23', 'cpp_std=c++23'])
 
-inc = include_directories('include')
+inc = include_directories('generated', 'include')
 libgtkwidgetspp = static_library(
     'gtkwidgetspp',
     sources: [
+        files(
+            'generated/status-notifier-item-interface_common.cpp',
+            'generated/status-notifier-item-interface_proxy.cpp',
+            'generated/status-notifier-item-interface_stub.cpp',
+
+            'generated/status-notifier-watcher-interface_common.cpp',
+            'generated/status-notifier-watcher-interface_proxy.cpp',
+            'generated/status-notifier-watcher-interface_stub.cpp'
+        ),
         files(
             'src/Utils/CSSUtil.cpp',
             'src/Utils/PathUtil.cpp',
@@ -24,7 +33,11 @@ libgtkwidgetspp = static_library(
             'src/Services/Hyprservice/actives.cpp',
             'src/Services/Hyprservice/socket.cpp',
             'src/Services/Hyprservice/event.cpp',
-            'src/Services/Hyprservice/service.cpp'
+            'src/Services/Hyprservice/service.cpp',
+
+            'src/Services/Trayservice/dbus/statusNotifierItem.cpp',
+            'src/Services/Trayservice/dbus/statusNotifierWatcher.cpp',
+            'src/Services/Trayservice/service.cpp'
         )
     ],
     include_directories : inc,

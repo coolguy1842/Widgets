@@ -19,8 +19,12 @@ protected:
     virtual ButtonProps& getButtonProps() { return _props.button; }
     virtual ClonerButtonProps& getClonerButtonProps() { return _props; }
 
-    ClonerButton() : Widgets::Button(), _props({}) {}
-    ClonerButton(ClonerButtonProps props) : Widgets::Button(props.button), _props(props) {};
+    ClonerButton()
+        : Widgets::Button()
+        , _props({}) {}
+    ClonerButton(ClonerButtonProps props)
+        : Widgets::Button()
+        , _props(props) {};
 
     void applyButtonNumber() {
         set_label(std::to_string(getClonerButtonProps().buttonNumber));

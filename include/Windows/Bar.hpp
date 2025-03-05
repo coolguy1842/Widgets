@@ -4,7 +4,7 @@
 #include <gtk4-layer-shell/gtk4-layer-shell.h>
 #include <gtkmm-4.0/gtkmm.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <Widgets/Box.hpp>
 #include <Widgets/Button.hpp>
 #include <Widgets/CenterBox.hpp>
@@ -16,6 +16,8 @@
 #include <Widgets/WorkspaceSelector.hpp>
 #include <cstdio>
 #include <cstring>
+
+#include "Widgets/SystemTray.hpp"
 
 class Bar : public Widgets::Window {
 private:
@@ -34,13 +36,18 @@ private:
                     .monitorID = (monitor == nullptr ? 0 : monitor->get_id())
                  }),
                 .center = Clock::create({ .widget = { .classNames = { "clock" } } }),
-                .right = Widgets::Button::create({
-                    .widget = { .classNames = { "close-button" }},
-                    .child = "close",
-                    .on_click = [&](Widgets::Button* button) {
-                        this->get_application()->quit();
-
-                        return true;
+                .right = Widgets::Box::create({
+                    .children = {
+                        SystemTray::create({}),
+                        Widgets::Button::create({
+                            .widget = { .classNames = { "close-button" }},
+                            .child = "close",
+                            .on_click = [&](Widgets::Button* button) {
+                                this->get_application()->quit();
+        
+                                return true;
+                            }
+                        })
                     }
                 })
             }),

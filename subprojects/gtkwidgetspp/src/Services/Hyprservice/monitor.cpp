@@ -1,6 +1,6 @@
 #include <glibmm/property.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <nlohmann/json_fwd.hpp>
 
 #define INIT_PROPERTY(name) _property_##name(*this, #name)
@@ -83,7 +83,7 @@ void Services::Hypr::Monitor::updateFromJSON(nlohmann::json json) {
 Services::Hypr::Monitor::~Monitor() {
 }
 
-Services::Hypr::Monitor* Services::Hypr::Hyprservice::getMonitor(std::string name) {
+Services::Hypr::Monitor* Services::Hypr::Service::getMonitor(std::string name) {
     for(Glib::RefPtr<Monitor>& monitor : get_monitors()) {
         if(monitor->get_name() == name) {
             return monitor.get();
@@ -93,7 +93,7 @@ Services::Hypr::Monitor* Services::Hypr::Hyprservice::getMonitor(std::string nam
     return nullptr;
 }
 
-Services::Hypr::Monitor* Services::Hypr::Hyprservice::getMonitor(uint64_t id) {
+Services::Hypr::Monitor* Services::Hypr::Service::getMonitor(uint64_t id) {
     for(Glib::RefPtr<Monitor>& monitor : get_monitors()) {
         if(monitor->get_id() == id) {
             return monitor.get();
@@ -115,7 +115,7 @@ Gdk::Monitor* Services::Hypr::Monitor::getGDKMonitor() {
     return nullptr;
 }
 
-void Services::Hypr::Hyprservice::syncMonitors() {
+void Services::Hypr::Service::syncMonitors() {
     const nlohmann::json json = nlohmann::json::parse(message("j/monitors"));
     std::vector<Glib::RefPtr<Monitor>> monitors, monitorList = get_monitors();
 

@@ -1,11 +1,13 @@
 #!/bin/bash
 
+./codegen.sh
+
 dir="$(realpath $(dirname $0))"
 
-meson setup builddir --reconfigure
+CC=clang CXX=clang++ meson setup builddir --reconfigure
 cd builddir
 
-meson compile -j12
+CC=clang CXX=clang++ meson compile -j12
 # env GTK_DEBUG=interactive GDK_BACKEND=wayland ./widgets --style $dir/styles/main.scss ${@,2}
 env GDK_BACKEND=wayland ./widgets --style $dir/styles/main.scss ${@,2}
 cd ..

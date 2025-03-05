@@ -25,8 +25,12 @@ protected:
         set_text(Glib::DateTime::create_now_local(curTime).format(getClockProps().format));
     }
 
-    Clock() : Widgets::Label(), _props({}) {}
-    Clock(ClockProps props) : Widgets::Label(props.label), _props(props) {};
+    Clock()
+        : Widgets::Label()
+        , _props({}) {}
+    Clock(ClockProps props)
+        : Widgets::Label()
+        , _props(props) {};
 
     virtual bool tickUpdate(const std::shared_ptr<Gdk::FrameClock>& frameClock) {
         time_t curTime = time(NULL);

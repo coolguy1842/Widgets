@@ -2,7 +2,7 @@
 #include <giomm-2.68/giomm.h>
 #include <unistd.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <Utils/StringUtil.hpp>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
@@ -10,9 +10,9 @@
 
 #include "glibmm/refptr.h"
 
-Services::Hypr::Hyprservice::~Hyprservice() {}
-Services::Hypr::Hyprservice::Hyprservice()
-    : Glib::ObjectBase(typeid(Services::Hypr::Hyprservice))
+Services::Hypr::Service::~Service() {}
+Services::Hypr::Service::Service()
+    : Glib::ObjectBase(typeid(Services::Hypr::Service))
     , _property_monitors(*this, "monitors")
     , _property_workspaces(*this, "workspaces")
     , _property_clients(*this, "clients") {
@@ -20,7 +20,7 @@ Services::Hypr::Hyprservice::Hyprservice()
 
     loadSocketPaths();
 
-    _actives = new Hypractives();
+    _actives = new Actives();
 
     _socketClient          = Gio::SocketClient::create();
     _dispatchSocketAddress = Gio::UnixSocketAddress::create(_dispatchSocketPath.c_str());
@@ -39,22 +39,22 @@ Services::Hypr::Hyprservice::Hyprservice()
 
 #pragma region __GETTERS__
 
-Services::Hypr::Hypractives* Services::Hypr::Hyprservice::getActives() { return _actives; }
+Services::Hypr::Actives* Services::Hypr::Service::getActives() { return _actives; }
 
 #pragma endregion
 #pragma region __SINGLETON__
 
-static Services::Hypr::Hyprservice* instance = nullptr;
-Services::Hypr::Hyprservice* Services::Hypr::Hyprservice::getInstance() {
+static Services::Hypr::Service* instance = nullptr;
+Services::Hypr::Service* Services::Hypr::Service::getInstance() {
     if(instance != nullptr) {
         return instance;
     }
 
-    instance = new Services::Hypr::Hyprservice();
+    instance = new Services::Hypr::Service();
     return instance;
 }
 
-void Services::Hypr::Hyprservice::closeInstance() {
+void Services::Hypr::Service::closeInstance() {
     if(instance == nullptr) {
         return;
     }

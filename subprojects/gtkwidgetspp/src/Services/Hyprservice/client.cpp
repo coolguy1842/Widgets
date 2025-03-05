@@ -1,6 +1,6 @@
 #include <glibmm/property.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -94,7 +94,7 @@ void Services::Hypr::Client::updateFromJSON(nlohmann::json json) {
 Services::Hypr::Client::~Client() {
 }
 
-Services::Hypr::Client* Services::Hypr::Hyprservice::getClient(std::string address) {
+Services::Hypr::Client* Services::Hypr::Service::getClient(std::string address) {
     for(Glib::RefPtr<Client>& client : get_clients()) {
         if(client->get_address() == address || client->get_address().substr(2) == address) {
             return client.get();
@@ -104,7 +104,7 @@ Services::Hypr::Client* Services::Hypr::Hyprservice::getClient(std::string addre
     return nullptr;
 }
 
-void Services::Hypr::Hyprservice::syncClients() {
+void Services::Hypr::Service::syncClients() {
     const nlohmann::json json = nlohmann::json::parse(message("j/clients"));
     std::vector<Glib::RefPtr<Client>> clients, clientList = get_clients();
 

@@ -1,0 +1,2 @@
+generated with https://github.com/Pelagicore/gdbus-codegen-glibmm
+command: gdbus-codegen-glibmm.py --generate-cpp-code=/path/to/generated/status-interface /path/to/data/introspect/org.kde.StatusNotifierWatcher.xml

@@ -5,20 +5,21 @@ $bar-accent-color: #5D93B0;
     color: $bar-accent-color;
 }
 
-.test-button {
-    background-color: rgba(0, 0, 0, 0.171);
-
-    &:hover {
-        background-color: $bar-accent-color;
-    }
-}
-
 .close-button {
-    background-color: rgba(0, 0, 0, 0.171);
+    all: unset;
+
+    padding: 5px 15px 5px 15px;
+    border-radius: 4px;
+    
+    color: $bar-accent-color;
+    background-color: transparent;
     
     &:hover {
+        color: white;
         background-color: #e45353;
     }
+
+    transition: background-color 0.15s ease-in-out, color 0.1s ease-in-out;
 }
 
 .workspace-selector {
@@ -29,4 +30,8 @@ $bar-accent-color: #5D93B0;
     all: unset;
 
     color: $bar-accent-color;
+}
+
+.system-tray {
+    background-color: red;
 }

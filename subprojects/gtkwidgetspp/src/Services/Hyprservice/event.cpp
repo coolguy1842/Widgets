@@ -1,11 +1,11 @@
 #include <fmt/format.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <Utils/StringUtil.hpp>
 #include <vector>
 
 #define VERBOSE_EVENTS false
-void Services::Hypr::Hyprservice::onEvent(std::string event) {
+void Services::Hypr::Service::onEvent(std::string event) {
     std::vector<std::string> splitStr = Util::String::split(event, ">>");
 
     std::string key               = splitStr[0];

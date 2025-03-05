@@ -3,7 +3,8 @@
 #include <fmt/format.h>
 #include <gtkmm-4.0/gtkmm.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
+#include <Services/TrayService.hpp>
 #include <Utils/CSSUtil.hpp>
 #include <Windows/Bar.hpp>
 #include <algorithm>
@@ -15,6 +16,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "gtk/gtk.h"
+#include "gtkmm/window.h"
 
 class Application : public Gtk::Application {
 private:
@@ -40,14 +44,14 @@ private:
     }
 
     void syncWindows() {
-        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
+        Services::Hypr::Service* hyprService = Services::Hypr::Service::getInstance();
 
         for(Gtk::Window* window : _windows) {
             remove_window(*window);
             window->close();
         }
 
-        for(Glib::RefPtr<Services::Hypr::Monitor>& monitor : hyprservice->get_monitors()) {
+        for(Glib::RefPtr<Services::Hypr::Monitor>& monitor : hyprService->get_monitors()) {
             Bar* bar = Bar::create(monitor.get());
             add_window(*bar);
         }
@@ -91,9 +95,11 @@ private:
 
     void on_startup() override {
         Gtk::Application::on_startup();
-        printf("startup\n");
+        // gtk_window_set_interactive_debugging(true);
 
-        Services::Hypr::Hyprservice* hyprservice = Services::Hypr::Hyprservice::getInstance();
+        Services::Hypr::Service* hyprService = Services::Hypr::Service::getInstance();
+        // Services::Tray::Service* trayService =
+        Services::Tray::Service::getInstance();
 
         if(_styleFilepath.has_value()) {
             loadSCSS(_styleFilepath.value().c_str());
@@ -101,8 +107,8 @@ private:
 
         syncWindows();
 
-        hyprservice->signal_monitor_added().connect(sigc::mem_fun(*this, &Application::on_monitor_added));
-        hyprservice->signal_monitor_removed().connect(sigc::mem_fun(*this, &Application::on_monitor_removed));
+        hyprService->signal_monitor_added().connect(sigc::mem_fun(*this, &Application::on_monitor_added));
+        hyprService->signal_monitor_removed().connect(sigc::mem_fun(*this, &Application::on_monitor_removed));
     }
 
     void on_shutdown() override {

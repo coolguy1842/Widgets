@@ -6,26 +6,10 @@
 #include <glibmm/property.h>
 #include <gtkmm-4.0/gdkmm.h>
 
+#include <Utils/GLibUtil.hpp>
 #include <cstdint>
 #include <nlohmann/json.hpp>
 #include <vector>
-
-#define MAKE_PROPERTY(T, name)                                                        \
-protected:                                                                            \
-    Glib::Property<T> _property_##name;                                               \
-                                                                                      \
-public:                                                                               \
-    Glib::PropertyProxy<T> property_##name() { return _property_##name.get_proxy(); } \
-    T get_##name() const { return _property_##name.get_value(); }                     \
-    T get_##name() { return _property_##name.get_value(); }
-
-#define MAKE_SIGNAL(name, ...)                                    \
-public:                                                           \
-    using type_signal_##name = sigc::signal<void(__VA_ARGS__)>;   \
-    type_signal_##name signal_##name() { return _signal_##name; } \
-                                                                  \
-protected:                                                        \
-    type_signal_##name _signal_##name;
 
 namespace Services::Hypr {
 
@@ -141,18 +125,18 @@ public:
     ~Client();
 };
 
-class Hypractives : public Glib::Object {
+class Actives : public Glib::Object {
     MAKE_PROPERTY(Monitor*, active_monitor);
     MAKE_PROPERTY(Workspace*, active_workspace);
     MAKE_PROPERTY(Client*, active_client);
 
 public:
-    Hypractives(Monitor* activeMonitor = nullptr, Workspace* activeWorkspace = nullptr, Client* activeClient = nullptr);
-    ~Hypractives();
+    Actives(Monitor* activeMonitor = nullptr, Workspace* activeWorkspace = nullptr, Client* activeClient = nullptr);
+    ~Actives();
 };
 
 // https://github.com/Aylur/ags/blob/v1/src/service/hyprland.ts used for reference
-class Hyprservice : public Glib::Object {
+class Service : public Glib::Object {
     MAKE_SIGNAL(monitor_added, Monitor*);
     // monitor id
     MAKE_SIGNAL(monitor_removed, std::string);
@@ -182,7 +166,7 @@ private:
     Glib::RefPtr<Gio::SocketAddress> _dispatchSocketAddress, _eventSocketAddress;
 
     std::string _dispatchSocketPath, _eventSocketPath;
-    Hypractives* _actives;
+    Actives* _actives;
 
     void loadSocketPaths();
     enum SocketType {
@@ -202,16 +186,16 @@ private:
     void onEvent(std::string event);
     void watchStream(const Glib::RefPtr<Gio::DataInputStream>& stream);
 
-    Hyprservice();
-    ~Hyprservice();
+    Service();
+    ~Service();
 
 public:
     std::string message(std::string msg);
 
-    static Hyprservice* getInstance();
+    static Service* getInstance();
     static void closeInstance();
 
-    Hypractives* getActives();
+    Actives* getActives();
 
     Client* getClient(std::string address);
 

@@ -1,6 +1,6 @@
 #include <glibmm/property.h>
 
-#include <Services/Hyprservice.hpp>
+#include <Services/HyprService.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <vector>
 
@@ -51,7 +51,7 @@ void Services::Hypr::Workspace::updateFromJSON(nlohmann::json json) {
 Services::Hypr::Workspace::~Workspace() {
 }
 
-Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(int64_t id) {
+Services::Hypr::Workspace* Services::Hypr::Service::getWorkspace(int64_t id) {
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_id() == id) {
             return workspace.get();
@@ -61,7 +61,7 @@ Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(int64_t id)
     return nullptr;
 }
 
-Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(std::string name) {
+Services::Hypr::Workspace* Services::Hypr::Service::getWorkspace(std::string name) {
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_name() == name) {
             return workspace.get();
@@ -71,7 +71,7 @@ Services::Hypr::Workspace* Services::Hypr::Hyprservice::getWorkspace(std::string
     return nullptr;
 }
 
-std::vector<Services::Hypr::Workspace*> Services::Hypr::Hyprservice::getWorkspaces(uint64_t monitorID) {
+std::vector<Services::Hypr::Workspace*> Services::Hypr::Service::getWorkspaces(uint64_t monitorID) {
     std::vector<Workspace*> workspaces = {};
     for(Glib::RefPtr<Workspace>& workspace : get_workspaces()) {
         if(workspace->get_monitorID() == monitorID) {
@@ -82,7 +82,7 @@ std::vector<Services::Hypr::Workspace*> Services::Hypr::Hyprservice::getWorkspac
     return workspaces;
 }
 
-void Services::Hypr::Hyprservice::syncWorkspaces() {
+void Services::Hypr::Service::syncWorkspaces() {
     const nlohmann::json json = nlohmann::json::parse(message("j/workspaces"));
     std::vector<Glib::RefPtr<Workspace>> workspaces, workspaceList = get_workspaces();
 
