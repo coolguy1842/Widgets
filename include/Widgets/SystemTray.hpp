@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fmt/format.h>
-#include <status-notifier-item-interface_proxy.h>
 
 #include <Services/TrayService.hpp>
 #include <Widgets/Box.hpp>
@@ -9,12 +8,7 @@
 #include <Widgets/Icon.hpp>
 #include <vector>
 
-#include "Widgets/Widget.hpp"
-#include "giomm/asyncresult.h"
 #include "glibmm/refptr.h"
-#include "gtkmm/label.h"
-#include "gtkmm/menubutton.h"
-#include "gtkmm/popovermenu.h"
 
 struct TrayItemProps {
     WidgetProps widget = {};
@@ -26,6 +20,7 @@ struct TrayItemProps {
 class TrayItemButton : public Widgets::Button {
 protected:
     Glib::RefPtr<Gtk::PopoverMenu> menu;
+    Widgets::Icon* _icon;
 
     TrayItemProps _props;
     time_t prevTime;
@@ -57,28 +52,23 @@ public:
         printf("icon: %s\n", getTrayItemProps().itemProxy->getIconName().c_str());
         printf("theme: %s\n", getTrayItemProps().itemProxy->getIconThemePath().c_str());
 
-        // menu = Glib::make_refptr_for_instance(new Gtk::PopoverMenu(_props.itemProxy->get_menu()));
-        set_child(*Widgets::Box::create({ .children = { Widgets::Icon::create({ .icon = getTrayItemProps().itemProxy->getIconName() }) } }));
+        _icon = Widgets::Icon::create({ .icon = getTrayItemProps().itemProxy->getIconName() });
 
-        // _props.itemProxy->property_menu().signal_changed().connect([&]() {
-        //     menu->set_menu_model(_props.itemProxy->get_menu());
-        // });
+        menu = Glib::make_refptr_for_instance(new Gtk::PopoverMenu());
+        set_child(*Widgets::Box::create({
+            .children = {
+                         _icon,
+                         menu.get() }
+        }));
+
+        getTrayItemProps().itemProxy->IconName_changed().connect([&]() { printf("new icon\n"); });
+        getTrayItemProps().itemProxy->AttentionIconName_changed().connect([&]() { printf("new attentionicon\n"); });
+        getTrayItemProps().itemProxy->OverlayIconName_changed().connect([&]() { printf("new overlayicon\n"); });
+        getTrayItemProps().itemProxy->IconPixmap_changed().connect([&]() { printf("new iconpixmap\n"); });
     }
 
     void on_clicked() {
         Widgets::Button::on_clicked();
-        // int x, y, width, height;
-        // this->get_bounds(x, y, width, height);
-
-        // _props.itemProxy->Menu_get();
-        // _props.itemProxy->SecondaryActivate(x, y, [&](const Glib::RefPtr<Gio::AsyncResult>& res) {
-        //     _props.itemProxy->SecondaryActivate_finish(res);
-        // });
-
-        // _props.itemProxy->ContextMenu(x, y, [&](const Glib::RefPtr<Gio::AsyncResult>& res) {
-        //     _props.itemProxy->ContextMenu_finish(res);
-        // });
-
         menu->popup();
     }
 };
@@ -134,7 +124,7 @@ public:
 
         add_css_class("system-tray");
 
-        tray->signal_item_added().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
-        tray->signal_item_removed().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
+        tray->signal_item_registered().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
+        tray->signal_item_unregistered().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
     }
 };

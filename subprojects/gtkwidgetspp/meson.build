@@ -35,8 +35,9 @@ libgtkwidgetspp = static_library(
             'src/Services/Hyprservice/event.cpp',
             'src/Services/Hyprservice/service.cpp',
 
-            'src/Services/Trayservice/dbus/statusNotifierItem.cpp',
+            'src/Services/Trayservice/dbus/trayItem.cpp',
             'src/Services/Trayservice/dbus/statusNotifierWatcher.cpp',
+            'src/Services/Trayservice/dbus/watcher.cpp',
             'src/Services/Trayservice/service.cpp'
         )
     ],
