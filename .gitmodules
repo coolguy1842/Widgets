@@ -1,0 +1,3 @@
+[submodule "subprojects/gtkwidgetspp"]
+	path = subprojects/gtkwidgetspp
+	url = https://github.com/coolguy1842/gtkwidgetspp

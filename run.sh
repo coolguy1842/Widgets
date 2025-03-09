@@ -1,7 +1,5 @@
 #!/bin/bash
 
-./codegen.sh
-
 dir="$(realpath $(dirname $0))"
 
 CC=clang CXX=clang++ meson setup builddir --reconfigure
