@@ -8,33 +8,70 @@
 #include <Widgets/Icon.hpp>
 #include <vector>
 
-#include "glibmm/refptr.h"
-
 struct TrayItemProps {
     WidgetProps widget = {};
-    ButtonProps button = {};
+    BoxProps box       = {};
 
-    Glib::RefPtr<TrayItem> itemProxy;
+    Glib::RefPtr<Services::Tray::TrayItem> itemProxy;
 };
 
-class TrayItemButton : public Widgets::Button {
+class TrayItemButton : public Widgets::Box {
 protected:
-    Glib::RefPtr<Gtk::PopoverMenu> menu;
     Widgets::Icon* _icon;
+    Glib::RefPtr<Gtk::PopoverMenu> _menu;
 
     TrayItemProps _props;
     time_t prevTime;
 
     virtual WidgetProps& getWidgetProps() { return _props.widget; }
-    virtual ButtonProps& getButtonProps() { return _props.button; }
+    virtual BoxProps& getBoxProps() { return _props.box; }
     virtual TrayItemProps& getTrayItemProps() { return _props; }
 
     TrayItemButton()
-        : Widgets::Button()
+        : Widgets::Box()
         , _props({}) {}
     TrayItemButton(TrayItemProps props)
-        : Widgets::Button()
+        : Widgets::Box()
         , _props(props) {};
+
+    void onLeftClick(int presses, double x, double y) {
+        // printf("left\n");
+
+        sigc::connection con = Glib::add_exception_handler([]() {});
+        auto cancellable     = Gio::Cancellable::create();
+
+        getTrayItemProps().itemProxy->Activate(
+            x, y,
+            [this](const Glib::RefPtr<Gio::AsyncResult>& res) {
+                getTrayItemProps().itemProxy->Activate_finish(res);
+            }
+        );
+    }
+
+    void onRightClick(int presses, double x, double y) {
+        // printf("right\n");
+
+        sigc::connection con = Glib::add_exception_handler([]() {});
+        auto cancellable     = Gio::Cancellable::create();
+
+        // getTrayItemProps().itemProxy->SecondaryActivate(
+        //     x, y,
+        //     [this](const Glib::RefPtr<Gio::AsyncResult>& res) {
+        //         getTrayItemProps().itemProxy->SecondaryActivate_finish(res);
+        //     }
+        // );
+
+        // getTrayItemProps().itemProxy->ContextMenu(x, y, [&](const Glib::RefPtr<Gio::AsyncResult>& res) {
+        //     getTrayItemProps().itemProxy->ContextMenu_finish(res);
+        // });
+
+        // auto menu = getTrayItemProps().itemProxy->getMenu();
+        // if(menu != nullptr) {
+        //     menu->popup();
+        // }
+
+        _menu->popup();
+    }
 
 public:
     ~TrayItemButton() {}
@@ -47,29 +84,32 @@ public:
     }
 
     void __init() {
-        Widgets::Button::__init();
+        Widgets::Box::__init();
 
-        printf("icon: %s\n", getTrayItemProps().itemProxy->getIconName().c_str());
-        printf("theme: %s\n", getTrayItemProps().itemProxy->getIconThemePath().c_str());
+        _icon = Widgets::Icon::create({ .icon = getTrayItemProps().itemProxy->getIcon() });
+        _menu = Glib::make_refptr_for_instance(new Gtk::PopoverMenu());
+        setChildren({ _icon, _menu.get() });
 
-        _icon = Widgets::Icon::create({ .icon = getTrayItemProps().itemProxy->getIconName() });
+        getTrayItemProps().itemProxy->signal_icon().connect([&]() { _icon->setIcon(getTrayItemProps().itemProxy->getIcon()); });
+        getTrayItemProps().itemProxy->signal_menu().connect([&]() {
+            auto menu = getTrayItemProps().itemProxy->getMenu();
+            if(menu != nullptr) {
+                _menu->set_menu_model(menu);
+            }
+            else {
+                _menu->set_menu_model(Gio::Menu::create());
+            }
+        });
 
-        menu = Glib::make_refptr_for_instance(new Gtk::PopoverMenu());
-        set_child(*Widgets::Box::create({
-            .children = {
-                         _icon,
-                         menu.get() }
-        }));
+        auto leftClickGesture = Gtk::GestureClick::create();
+        leftClickGesture->signal_pressed().connect(sigc::mem_fun(*this, &TrayItemButton::onLeftClick));
 
-        getTrayItemProps().itemProxy->IconName_changed().connect([&]() { printf("new icon\n"); });
-        getTrayItemProps().itemProxy->AttentionIconName_changed().connect([&]() { printf("new attentionicon\n"); });
-        getTrayItemProps().itemProxy->OverlayIconName_changed().connect([&]() { printf("new overlayicon\n"); });
-        getTrayItemProps().itemProxy->IconPixmap_changed().connect([&]() { printf("new iconpixmap\n"); });
-    }
+        auto rightClickGesture = Gtk::GestureClick::create();
+        rightClickGesture->set_button(3);
+        rightClickGesture->signal_pressed().connect(sigc::mem_fun(*this, &TrayItemButton::onRightClick));
 
-    void on_clicked() {
-        Widgets::Button::on_clicked();
-        menu->popup();
+        add_controller(rightClickGesture);
+        add_controller(leftClickGesture);
     }
 };
 
@@ -124,7 +164,7 @@ public:
 
         add_css_class("system-tray");
 
-        tray->signal_item_registered().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
-        tray->signal_item_unregistered().connect([this](Glib::RefPtr<TrayItem> proxy) { syncChildren(); });
+        tray->signal_item_registered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) { syncChildren(); });
+        tray->signal_item_unregistered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) { syncChildren(); });
     }
 };
