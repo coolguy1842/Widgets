@@ -1,6 +1,7 @@
 project('widgets', [ 'cpp', 'c' ], default_options : ['cpp_std=c++23'])
 
 libgtkwidgetspp_proj = subproject('gtkwidgetspp')
+libgtkwidgetspp_include = libgtkwidgetspp_proj.get_variable('libgtkwidgetspp_include')
 libgtkwidgetspp_dep = libgtkwidgetspp_proj.get_variable('libgtkwidgetspp_dep')
 
 gnome = import('gnome')
@@ -14,7 +15,7 @@ iconresources = gnome.compile_resources(
 executable(
     'widgets',
     sources: [ iconresources, files('src/main.cpp') ],
-    include_directories: include_directories('include'),
+    include_directories: [ include_directories('include'), libgtkwidgetspp_include ],
     dependencies: [
         dependency('gtk4'),
         dependency('gtkmm-4.0'),
