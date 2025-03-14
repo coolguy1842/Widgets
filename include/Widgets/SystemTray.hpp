@@ -90,6 +90,8 @@ public:
         add_controller(rightClickGesture);
         add_controller(leftClickGesture);
     }
+
+    Glib::RefPtr<Services::Tray::TrayItem> getItem() { return getTrayItemProps().itemProxy; }
 };
 
 struct SystemTrayProps {
@@ -143,7 +145,18 @@ public:
 
         add_css_class("system-tray");
 
-        tray->signal_item_registered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) { syncChildren(); });
-        tray->signal_item_unregistered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) { syncChildren(); });
+        tray->signal_item_registered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) {
+            append(*TrayItemButton::create({ .itemProxy = proxy }));
+        });
+
+        tray->signal_item_unregistered().connect([this](Glib::RefPtr<Services::Tray::TrayItem> proxy) {
+            for(auto child : get_children()) {
+                TrayItemButton* button = (TrayItemButton*)child;
+
+                if(button->getItem().get() == proxy.get()) {
+                    remove(*child);
+                }
+            }
+        });
     }
 };
