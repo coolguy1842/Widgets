@@ -8,7 +8,7 @@
 #include <Widgets/Icon.hpp>
 #include <vector>
 
-struct TrayItemProps {
+struct TrayItemButtonProps {
     WidgetProps widget = {};
     BoxProps box       = {};
 
@@ -20,17 +20,17 @@ protected:
     Widgets::Icon* _icon;
     Glib::RefPtr<Gtk::PopoverMenu> _menu;
 
-    TrayItemProps _props;
+    TrayItemButtonProps _props;
     time_t prevTime;
 
     virtual WidgetProps& getWidgetProps() { return _props.widget; }
     virtual BoxProps& getBoxProps() { return _props.box; }
-    virtual TrayItemProps& getTrayItemProps() { return _props; }
+    virtual TrayItemButtonProps& getTrayItemButtonProps() { return _props; }
 
     TrayItemButton()
         : Widgets::Box()
         , _props({}) {}
-    TrayItemButton(TrayItemProps props)
+    TrayItemButton(TrayItemButtonProps props)
         : Widgets::Box()
         , _props(props) {};
 
@@ -40,10 +40,10 @@ protected:
         sigc::connection con = Glib::add_exception_handler([]() {});
         auto cancellable     = Gio::Cancellable::create();
 
-        getTrayItemProps().itemProxy->Activate(
+        getTrayItemButtonProps().itemProxy->Activate(
             x, y,
             [this](const Glib::RefPtr<Gio::AsyncResult>& res) {
-                getTrayItemProps().itemProxy->Activate_finish(res);
+                getTrayItemButtonProps().itemProxy->Activate_finish(res);
             }
         );
     }
@@ -58,7 +58,7 @@ protected:
 public:
     ~TrayItemButton() {}
 
-    static TrayItemButton* create(TrayItemProps props = {}) {
+    static TrayItemButton* create(TrayItemButtonProps props = {}) {
         TrayItemButton* item = new TrayItemButton(props);
         item->__init();
 
@@ -68,15 +68,15 @@ public:
     void __init() {
         Widgets::Box::__init();
 
-        _icon = Widgets::Icon::create({ .icon = getTrayItemProps().itemProxy->getIcon() });
-        _menu = getTrayItemProps().itemProxy->getMenuWidget();
+        _icon = Widgets::Icon::create({ .icon = getTrayItemButtonProps().itemProxy->getIcon() });
+        _menu = getTrayItemButtonProps().itemProxy->getMenuWidget();
 
         setChildren({ _icon });
         _menu->set_parent(*this);
 
-        getTrayItemProps().itemProxy->signal_icon().connect([&]() { _icon->setIcon(getTrayItemProps().itemProxy->getIcon()); });
-        getTrayItemProps().itemProxy->signal_menu().connect([&]() {
-            _menu = getTrayItemProps().itemProxy->getMenuWidget();
+        getTrayItemButtonProps().itemProxy->signal_icon().connect([&]() { _icon->setIcon(getTrayItemButtonProps().itemProxy->getIcon()); });
+        getTrayItemButtonProps().itemProxy->signal_menu().connect([&]() {
+            _menu = getTrayItemButtonProps().itemProxy->getMenuWidget();
             _menu->set_parent(*this);
         });
 
@@ -91,12 +91,14 @@ public:
         add_controller(leftClickGesture);
     }
 
-    Glib::RefPtr<Services::Tray::TrayItem> getItem() { return getTrayItemProps().itemProxy; }
+    Glib::RefPtr<Services::Tray::TrayItem> getItem() { return getTrayItemButtonProps().itemProxy; }
 };
 
 struct SystemTrayProps {
     WidgetProps widget = {};
-    BoxProps box       = {};
+    BoxProps box       = {
+              .spacing = 2
+    };
 };
 
 class SystemTray : public Widgets::Box {
